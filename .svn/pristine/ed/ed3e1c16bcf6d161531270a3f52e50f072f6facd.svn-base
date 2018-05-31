@@ -1,0 +1,8 @@
+.pageo-QunBox {width: 550px;margin: 20px auto 0;}
+.page-QunBox {padding: 20px 0;font-size: 12px;}
+.page-QunBox>span{ float: left; line-height: 22px; color: #666;margin-left: 25%}
+.page-QunBox span i{ color: #d40711; }
+.page-QunBox .page-num{ float: left; }
+.page-QunBox .page-num>div{ float: left; margin-left: 5px; height: 22px; line-height: 22px; border: 1px solid #CBCBCB; width: 26px; text-align: center; color: #333; cursor: pointer; }
+.page-QunBox .page-num>div.sty1{ width: auto; padding: 0 4px; }
+.page-QunBox .page-num>div.cur{ border: 1px solid #CE1C02; background-color: #CE1C02; color: #fff; }

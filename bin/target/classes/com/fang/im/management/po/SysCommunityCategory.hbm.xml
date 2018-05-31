@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2017-4-11 13:00:46 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+ <class name="com.fang.im.management.po.SysCommunityCategory"
+  table="management_syscommunitycategory">
+  <id name="categoryId" type="java.lang.Integer">
+   <column name="categoryid" />
+   <generator class="native" />
+  </id>
+  <property name="categoryName" type="java.lang.String">
+   <column name="categoryname" not-null="true" length="30" />
+  </property>
+  <property name="createTime" type="java.util.Date">
+   <column name="createtime" not-null="true" />
+  </property>
+  <property name="isDelete" type="java.lang.Boolean">
+   <column name="isdelete" default="0" not-null="true" />
+  </property>
+ </class>
+</hibernate-mapping>

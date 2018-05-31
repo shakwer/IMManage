@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+ <properties>
+  <property name="logHome">/log/im/groupmanager/</property>
+  <property name="commentApiFilePrifix">groupmanager-</property>
+  <property name="logTestFileName">error</property>
+ </properties>
+
+ <Appenders>
+  <Console name="Console" target="SYSTEM_OUT">
+   <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+  </Console>
+
+  <RollingFile name="errorRollingFile"
+   fileName="${logHome}/${commentApiFilePrifix}${logTestFileName}.log"
+   filePattern="${logHome}/$${date:yyyy-MM-dd}/${commentApiFilePrifix}${logTestFileName}-%d{yyyy-MM-dd}-%i.log.gz">
+   <PatternLayout>
+    <Pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+    </Pattern>
+   </PatternLayout>
+   <Policies>
+    <TimeBasedTriggeringPolicy modulate="true"
+     interval="1" />
+    <SizeBasedTriggeringPolicy size="1024 MB" />
+   </Policies>
+   <DefaultRolloverStrategy fileIndex="max" max="10" />
+  </RollingFile>
+ </Appenders>
+
+ <Loggers>
+  <!-- 这儿为trace表示什么都可以打印出来了,其他几个级别分别为：TRACE、DEBUG、INFO、WARN、ERROR和FATAL -->
+  <!-- Root节点，是对输出没有配置logger而执行的默认配置 -->
+  <Root level="INFO">
+   <AppenderRef ref="Console" />
+  </Root>
+
+  <!-- additivity属性，主要有两个作用： 1、执行完当前logger的配置后，是否还要执行Root中的默认配置，比如设置为true，输出到文件了，还要执行Root配置，也输出到控制台。
+   2、对于当前logger的name属相配置的类，它的上级包是否也执行该配置，如果为false，则只有最后层级类执行，上级包中的类不执行该配置。 -->
+
+  <logger name="error" level="ERROR" additivity="false">
+   <AppenderRef ref="errorRollingFile" />
+  </logger>
+ </Loggers>
+
+</Configuration>

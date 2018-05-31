@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+ <bean id="sessionFactory_r"
+  class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+  <property name="dataSource" ref="dataSource_r" />
+  <property name="mappingLocations"
+   value="classpath:com/fang/im/management/po/*.hbm.xml" />
+  <property name="hibernateProperties">
+   <props>
+    <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+    <prop key="hibernate.connection.autocommit">true</prop>
+    <prop key="hibernate.show_sql">true</prop>
+    <prop key="hibernate.format_sql">true</prop>
+    <prop key="hibernate.hbm2ddl.auto">update</prop>
+   </props>
+  </property>
+ </bean>
+
+ <bean id="sessionFactory_w"
+  class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+  <property name="dataSource" ref="dataSource_w" />
+  <property name="mappingLocations"
+   value="classpath:com/fang/im/management/po/*.hbm.xml" />
+  <property name="hibernateProperties">
+   <props>
+    <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+    <prop key="hibernate.connection.autocommit">true</prop>
+    <prop key="hibernate.show_sql">true</prop>
+    <prop key="hibernate.format_sql">true</prop>
+    <!-- <prop key="hibernate.current_session_context_class">thread</prop> -->
+    <prop key="hibernate.hbm2ddl.auto">update</prop>
+   </props>
+  </property>
+ </bean>
+
+ <bean id="hibernateTemplate_r" class="org.springframework.orm.hibernate4.HibernateTemplate">
+  <property name="sessionFactory" ref="sessionFactory_r" />
+ </bean>
+
+ <bean id="hibernateTemplate_w" class="org.springframework.orm.hibernate4.HibernateTemplate">
+  <property name="sessionFactory" ref="sessionFactory_w" />
+ </bean>
+
+ <!-- dao层包扫描 -->
+ <context:component-scan base-package="com.fang.im.management.dao" />
+
+</beans>

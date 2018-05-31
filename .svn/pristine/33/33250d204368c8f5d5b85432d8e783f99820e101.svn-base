@@ -1,0 +1,203 @@
+package com.fang.im.management.web.vo.in;
+
+/**
+ * 群管理inVo
+ *
+ * @author YZT_SouFun
+ */
+public class CommunityManagerInVo {
+
+  /**
+   * 群id
+   */
+  private String communityid;
+
+  /**
+   * 群名称
+   */
+  private String communityname;
+
+  /**
+   * 新群主
+   */
+  private String newmaster;
+
+  /**
+   * 删除群id
+   */
+  private String deltelist;
+
+  /**
+   * 页大小
+   */
+  private Integer pagesize;
+
+  /**
+   * 页码
+   */
+  private Integer pageindex;
+
+  /**
+   * 删除标记
+   */
+  private Integer isdelete;
+
+  /**
+   * 排序
+   */
+  private String orderstr;
+
+  /**
+   * 获取群ID
+   *
+   * @return communityid
+   */
+  public String getCommunityid() {
+    return communityid;
+  }
+
+  /**
+   * 设置群ID
+   *
+   * @param communityid
+   *        群ID
+   *
+   */
+  public void setCommunityid(String communityid) {
+    this.communityid = communityid;
+  }
+
+  /**
+   * 获取删除群ids
+   *
+   * @return deltelist
+   *
+   */
+  public String getDeltelist() {
+    return deltelist;
+  }
+
+  /**
+   * 设置删除群ids
+   *
+   * @param deltelist
+   *        删除群ids
+   */
+  public void setDeltelist(String deltelist) {
+    this.deltelist = deltelist;
+  }
+
+  /**
+   * 获取新群主
+   *
+   * @return newmaster
+   */
+  public String getNewmaster() {
+    return newmaster;
+  }
+
+  /**
+   * 设置新群主
+   *
+   * @param newmaster
+   *        新群主
+   */
+  public void setNewmaster(String newmaster) {
+    this.newmaster = newmaster;
+  }
+
+  /**
+   * 获取页大小
+   *
+   * @return pagesize
+   */
+  public Integer getPagesize() {
+    return pagesize;
+  }
+
+  /**
+   * 设置页大小
+   *
+   * @param pagesize
+   *        页大小
+   */
+  public void setPagesize(Integer pagesize) {
+    this.pagesize = pagesize;
+  }
+
+  /**
+   * 获取页码
+   *
+   * @return pageindex
+   */
+  public Integer getPageindex() {
+    return pageindex;
+  }
+
+  /**
+   * 设置页码
+   *
+   * @param pageindex
+   *        页码
+   */
+  public void setPageindex(Integer pageindex) {
+    this.pageindex = pageindex;
+  }
+
+  /**
+   * 删除标记
+   *
+   * @return isdelete
+   */
+  public Integer getIsdelete() {
+    return isdelete;
+  }
+
+  /**
+   * 设置删除标记
+   *
+   * @param isdelete
+   *        删除标记
+   */
+  public void setIsdelete(Integer isdelete) {
+    this.isdelete = isdelete;
+  }
+
+  /**
+   * 获取群名
+   *
+   * @return 群名
+   */
+  public String getCommunityname() {
+    return communityname;
+  }
+
+  /**
+   * 设置群名
+   *
+   * @param communityname
+   *        群名
+   */
+  public void setCommunityname(String communityname) {
+    this.communityname = communityname;
+  }
+
+  /**
+   * 排序
+   *
+   * @return orderstr
+   */
+  public String getOrderstr() {
+    return orderstr;
+  }
+
+  /**
+   * 排序
+   *
+   * @param orderstr
+   *        排序
+   */
+  public void setOrderstr(String orderstr) {
+    this.orderstr = orderstr;
+  }
+}

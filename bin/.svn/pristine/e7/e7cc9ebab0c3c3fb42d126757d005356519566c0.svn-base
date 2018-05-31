@@ -1,0 +1,11 @@
+.add-t i {
+  display: inline-block;
+  position: relative;
+  top: -2px;
+  *top: -7px;
+  margin-left: 40px;
+  *left: 15px;
+  width: 10px;
+  height: 6px;
+  background: url(../images/sprite.png) -76px -2px;
+}

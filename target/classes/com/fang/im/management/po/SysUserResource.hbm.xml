@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2017-4-11 13:00:46 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+ <class name="com.fang.im.management.po.SysUserResource" table="management_sysuserresource">
+  <id name="sysUserId" type="java.lang.Integer">
+   <column name="sysuserid" />
+   <generator class="native" />
+  </id>
+  <property name="email" type="java.lang.String" update="false">
+   <column name="email" not-null="true" length="50" />
+  </property>
+  <property name="imUserName" type="java.lang.String" update="false">
+   <column name="imusername" not-null="true" length="30" />
+  </property>
+  <property name="sysUserRealName" type="java.lang.String">
+   <column name="sysuserrealname" not-null="true" length="20" />
+  </property>
+  <property name="createTime" type="java.util.Date" update="false">
+   <column name="createtime" not-null="true" />
+  </property>
+  <property name="lastLoginTime" type="java.util.Date">
+   <column name="lastlogintime" />
+  </property>
+  <property name="isDelete" type="java.lang.Boolean">
+   <column name="isdelete" default="0" not-null="true" />
+  </property>
+  <many-to-one name="sysRole" class="com.fang.im.management.po.SysRole"
+   fetch="join">
+   <column name="roleid" />
+  </many-to-one>
+  <!--
+  <set name="sysCities" table="management_usertocity" fetch="join">
+   <key column="userid" />
+   <many-to-many class="com.fang.im.management.po.SysCity"
+    column="cityid"></many-to-many>
+  </set>
+  -->
+ </class>
+</hibernate-mapping>

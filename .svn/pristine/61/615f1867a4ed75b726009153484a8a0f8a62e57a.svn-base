@@ -1,0 +1,258 @@
+/**
+ * File：SysCommunityResource.java
+ * Package：com.fang.im.management.po
+ * Author：jin
+ * Date：2017年4月10日 下午5:50:17
+ * Copyright (C) 2017-2017 房天下-版权所有
+ */
+package com.fang.im.management.po;
+
+import java.util.Date;
+
+/**
+ * <p>
+ * Description: SysCommunityResource
+ * </p>
+ *
+ * @author jinshilei 2017年4月10日
+ * @version 1.0
+ *
+ */
+public class SysCommunityResource {
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return "群id: " + communityId + " 群主 : " + communityHolder + " 群名称  : " + communityName + " 城市 : " + city
+				+ " 群分类  : " + category + " 群创建时间 : " + createTime + " 是否有效 : " + isDelete;
+	}
+
+	/**
+	 * 群id
+	 */
+	private String communityId;
+
+	/**
+	 * 群主
+	 */
+	private String communityHolder;
+
+	/**
+	 * 群名称
+	 */
+	private String communityName;
+
+	/**
+	 * 群所属城市
+	 */
+	private Integer city;
+
+	/**
+	 * 群分类
+	 */
+	private Integer category;
+
+	/**
+	 * 群创建时间
+	 */
+	private Date createTime;
+
+	/**
+	 * 是否有效
+	 */
+	private Boolean isDelete;
+
+	private String communityNotice;
+	private String projectid;
+	private String communityPic;
+	private Date deleteTime;
+	private Integer communityLimit;
+
+	/**
+	 *
+	 * getCommunityId
+	 *
+	 * @return 返回值
+	 */
+	public String getCommunityId() {
+		return communityId;
+	}
+
+	/**
+	 *
+	 * setCommunityId
+	 *
+	 * @param communityId
+	 *            群id
+	 */
+	public void setCommunityId(String communityId) {
+		this.communityId = communityId;
+	}
+
+	/**
+	 *
+	 * getCommunityHolder
+	 *
+	 * @return 返回值
+	 */
+	public String getCommunityHolder() {
+		return communityHolder;
+	}
+
+	/**
+	 *
+	 * setCommunityHolder
+	 *
+	 * @param communityHolder
+	 *            群主
+	 */
+	public void setCommunityHolder(String communityHolder) {
+		this.communityHolder = communityHolder;
+	}
+
+	/**
+	 *
+	 * getCommunityName
+	 *
+	 * @return 返回值
+	 */
+	public String getCommunityName() {
+		return communityName;
+	}
+
+	/**
+	 *
+	 * setCommunityName
+	 *
+	 * @param communityName
+	 *            群名称
+	 */
+	public void setCommunityName(String communityName) {
+		this.communityName = communityName;
+	}
+
+	/**
+	 *
+	 * getCity
+	 *
+	 * @return 返回值
+	 */
+	public Integer getCity() {
+		return city;
+	}
+
+	/**
+	 *
+	 * setCity
+	 *
+	 * @param city
+	 *            群所属城市
+	 */
+	public void setCity(Integer city) {
+		this.city = city;
+	}
+
+	/**
+	 *
+	 * getCategory
+	 *
+	 * @return 返回值
+	 */
+	public Integer getCategory() {
+		return category;
+	}
+
+	/**
+	 *
+	 * setCategory
+	 *
+	 * @param category
+	 *            群所属分类
+	 */
+	public void setCategory(Integer category) {
+		this.category = category;
+	}
+
+	/**
+	 *
+	 * getCreateTime
+	 *
+	 * @return 返回值
+	 */
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	/**
+	 *
+	 * setCreateTime
+	 *
+	 * @param createTime
+	 *            群创建时间
+	 */
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	/**
+	 *
+	 * getIsDelete
+	 *
+	 * @return 返回值
+	 */
+	public Boolean getIsDelete() {
+		return isDelete;
+	}
+
+	/**
+	 *
+	 * setIsDelete
+	 *
+	 * @param isDelete
+	 *            是否有效
+	 */
+	public void setIsDelete(Boolean isDelete) {
+		this.isDelete = isDelete;
+	}
+
+	public String getCommunityNotice() {
+		return communityNotice;
+	}
+
+	public void setCommunityNotice(String communityNotice) {
+		this.communityNotice = communityNotice;
+	}
+
+	public String getProjectid() {
+		return projectid;
+	}
+
+	public void setProjectid(String projectid) {
+		this.projectid = projectid;
+	}
+
+	public String getCommunityPic() {
+		return communityPic;
+	}
+
+	public void setCommunityPic(String communityPic) {
+		this.communityPic = communityPic;
+	}
+
+	public Date getDeleteTime() {
+		return deleteTime;
+	}
+
+	public void setDeleteTime(Date deleteTime) {
+		this.deleteTime = deleteTime;
+	}
+
+	public Integer getCommunityLimit() {
+		return communityLimit;
+	}
+
+	public void setCommunityLimit(Integer communityLimit) {
+		this.communityLimit = communityLimit;
+	}
+
+}

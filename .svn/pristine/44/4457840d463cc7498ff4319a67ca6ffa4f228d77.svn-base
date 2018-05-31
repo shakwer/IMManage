@@ -1,0 +1,1021 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<%@include file="public.jsp"%>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet"
+	href="<%=contextPath%>/resources/css/community.css" />
+<title>群管理</title>
+<style>
+select {
+	font-size: 14px;
+	color: #666;
+}
+</style>
+</head>
+<body>
+	<jsp:include page="header.jsp"></jsp:include>
+	<div class="content" style="padding-top: 0px;">
+		<div class="content-c" style="margin: 0px;">
+			<div class="section">
+				<div class="dt clearfix">
+					<div class="dt-left clearfix">
+						<c:choose>
+							<c:when test="${not empty isdelete && isdelete == 1}">
+								<span class="" id="grouplist">群列表</span>
+								<span class="cur" id="delgrouplist">已删除列表</span>
+							</c:when>
+							<c:otherwise>
+								<span class="cur" id="grouplist">群列表</span>
+								<span class="" id="delgrouplist">已删除列表</span>
+							</c:otherwise>
+						</c:choose>
+
+						<div class="bottom-border"></div>
+					</div>
+				</div>
+				<c:choose>
+					<c:when test="${not empty isdelete && isdelete == 1}">
+						<div class="section-c">
+							<div class="outline clearfix">
+								<span class="btn huifuQun"><i class="sty1"></i>恢复群</span>
+								<div class="outline-right">
+									<input class="input-sty1" type="text" name=""
+										id="selectdelgroup" placeholder="搜索关键词"> <span
+										class="btn " style="margin-right: 0; padding: 0 20px;"
+										id="delfind">搜索</span>
+								</div>
+							</div>
+							<!-- 删除列表 -->
+							<table class="tables1">
+								<thead>
+									<tr>
+										<th></th>
+										<th></th>
+										<th class="special">群名(群ID)</th>
+										<th>群分类</th>
+										<th>群主</th>
+										<th>群所在城市</th>
+										<th>群人数/人数上限</th>
+										<th>创建时间<img id="delorder"
+											src="<%=contextPath%>/resources/images/xx.jpg"></th>
+										<th>最后发言时间</th>
+										<th>操作</th>
+									</tr>
+								</thead>
+								<tbody id="tbody2">
+									<c:choose>
+										<c:when
+											test="${not empty communitylists && communitylists.size() >0}">
+											<c:forEach items="${communitylists}" var="communityitem"
+												varStatus="status">
+												<tr>
+													<td><i></i></td>
+													<td>${status.index +1}</td>
+													<td style="display: none;">${communityitem.getCommunityid()}</td>
+													<td class="special"><img class="tx"
+														src="<%=contextPath%>/resources/images/q.jpg"><input
+														class="changed-input" type="text"
+														value="${communityitem.getCommunityname()}"
+														disabled="disabled">(${communityitem.getCommunityid()})</td>
+													<td><input class="changed-input" type="text"
+														value="${communityitem.getCategoryname()}"
+														disabled="disabled"></td>
+													<td>${communityitem.getCommunityholder()}</td>
+													<td id="city_${communityitem.getCityid()}">${communityitem.getCityname()}</td>
+													<td>${communityitem.getImurlout().getCount() == null ? "-" : communityitem.getImurlout().getCount()}/${communityitem.getImurlout().getLimit() == null ? "-" : communityitem.getImurlout().getLimit() == null}</td>
+													<td>${communityitem.getCreatetime()}</td>
+													<td></td>
+													<td style="width: 100px;"><img class="ibtn huifuQun"
+														src="<%=contextPath%>/resources/images/huifu1.png"
+														title="恢复"></td>
+												</tr>
+											</c:forEach>
+										</c:when>
+										<c:otherwise>
+											<tr>
+												<td colspan='12' style="text-align: center;">没有搜索到相关关键词的结果</td>
+											</tr>
+										</c:otherwise>
+									</c:choose>
+								</tbody>
+
+							</table>
+							<div class="pageo clearfix">
+								<div class="page" id="tbody2_page">
+									<span>共<i>${totalcount }</i>条记录 <i>${currentindex}</i>/${totalpage}页（20项/页）
+									</span>
+									<div id="pageNum" class="page-num clearfix">
+										<div id="delfirstPage" class="sty1">首页</div>
+										<div id="delpriviousPage" class="sty1">上一页</div>
+										<c:choose>
+											<c:when test="${totalpage>0 }">
+												<c:choose>
+													<c:when test="${totalpage<=3 }">
+														<c:forEach begin="1" end="${totalpage }" var="stat">
+															<div id="delfront_${stat }"
+																<c:if test="${stat==pageindex}">class="cur"</c:if>>${stat }</div>
+														</c:forEach>
+													</c:when>
+													<c:otherwise>
+														<c:forEach
+															begin="${totalpage-pageindex>2?pageindex:(totalpage-2) }"
+															end="${pageindex+(totalpage-pageindex>2?2:(totalpage-pageindex)) }"
+															var="stat">
+															<div id="delfront_${stat }"
+																<c:if test="${stat==pageindex}">class="cur"</c:if>>${stat }</div>
+														</c:forEach>
+														<c:if test="${totalpage-pageindex>2 }">
+															<div id="delmiddlePage">…</div>
+														</c:if>
+													</c:otherwise>
+												</c:choose>
+											</c:when>
+											<c:otherwise>
+												<div class="cur">1</div>
+											</c:otherwise>
+										</c:choose>
+										<div id="delnextPage" class="sty1">下一页</div>
+										<div id="dellastPage" class="sty1">尾页</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</c:when>
+					<c:otherwise>
+						<!-- 群列表 -->
+						<div class="section-c">
+							<!-- <div class="outline clearfix">
+                <span class="btn addQunBtn"><i></i>新建群</span> <span class="btn-sty1 delBtn">删除群</span>
+                <div class="outline-right">
+                  <input class="input-sty1" type="text" id="selectgroup" placeholder="搜索关键词"> <span class="btn"
+                    style="margin-right: 0; padding: 0 20px;" id="find">搜索</span>
+                </div>
+              </div> -->
+                         <!-- 新加的搜索表头 -->
+							<div class="outline clearfix">
+								<div class="select" type="mainregion">
+									<div class="select-t">
+										请选择大区<i></i>
+									</div>
+									<div class="select-c" style="display: none;">
+										<ul class="clearfix">
+											<!-- <li>大区1</li>
+											<li>大区2</li>
+											<li>大区3</li> -->
+										</ul>
+									</div>
+									<input type="hidden" id="mainregion">
+								</div>
+								<div class="select" type="maincity">
+									<div class="select-t">
+										请选择城市<i></i>
+									</div>
+									<div class="select-c" style="display: none;">
+										<ul class="clearfix">
+											<!-- <li>城市1</li>
+											<li>城市2</li>
+											<li>城市3</li> -->
+										</ul>
+									</div>
+									<input type="hidden" id="maincity">
+								</div>
+								<div class="select" type="maingroupCate">
+									<div class="select-t">
+										请选择群分类<i></i>
+									</div>
+									<div class="select-c" style="display: none;">
+										<ul class="clearfix">
+											<!-- <li>分类1</li>
+											<li>分类2</li>
+											<li>分类3</li> -->
+										</ul>
+									</div>
+									<input type="hidden" id="maingroupCate">
+								</div>
+								<input class="input-sty1" type="text" id="projectid" placeholder="楼盘ID">
+								<input class="input-sty1" type="text" id="communityname" placeholder="群名称">
+								<input class="input-sty1" type="text" id="selectgroup" placeholder="群ID"> 
+								<span class="btn searchBtn"  id="find"><i></i>搜索</span><span class="btn addQunBtn"><i></i>新建群</span>
+								<span class="btn messageBtn"><i></i>群发消息</span> <span
+									class="btn-sty1 delBtn">删除群</span>
+							</div>
+							
+							
+							<!-- 正常列表 -->
+							<table class="tables1">
+								<thead>
+									<tr>
+										<th></th>
+										<th></th>
+										<th class="special">群名(群ID)</th>
+										<th>群分类</th>
+										<th>群主</th>
+										<th>群所在城市</th>
+										<th>群人数/人数上限</th>
+										<th>创建时间<img id="order"
+											src="<%=contextPath%>/resources/images/xx.jpg"></th>
+										<th>最后发言时间</th>
+										<th>操作</th>
+									</tr>
+								</thead>
+								<tbody id="tbody1">
+									<c:choose>
+										<c:when test="${not empty communitylists}">
+											<c:forEach items="${communitylists}" var="communityitem"
+												varStatus="status">
+
+												<tr qunId='${communityitem.getCommunityid()}'>
+													<td><i></i></td>
+													<td>${status.index +1}</td>
+													<td style="display: none" type='qunId'>${communityitem.getCommunityid()}</td>
+													<td class="special"><img class="tx"
+														<c:choose>
+  <c:when test="${communityitem.getImurlout().getPic() != null && communityitem.getImurlout().getPic() != '' &&communityitem.getImurlout().getPic() != 'null' }">
+    src="${communityitem.getImurlout().getPic()}"
+  </c:when>
+  <c:otherwise>
+    src="<%=contextPath%>/resources/images/q.jpg"
+  </c:otherwise>
+</c:choose>
+														height="20" width="20"><input
+														class="changed-input groupname-input" type="text"
+														value="${communityitem.getCommunityname()}"
+														disabled="disabled">(${communityitem.getCommunityid()})</td>
+													<td>
+														<div class="tab-line-input selectcatg">
+															<div id="catg_t" class="up-t">
+																<span id="catg_up_${communityitem.getCategoryid()}">${communityitem.getCategoryname()}</span>
+															</div>
+
+															<div class="up-catg" style="display: none;">
+																<ul id="catg_up_all" class="clearfix">
+																	<c:if test="${not empty catglist}">
+																		<c:forEach items="${catglist }" var="catg">
+
+																			<li id="catg_up_li_${catg.getCategoryId() }">${catg.getCategoryName() }</li>
+
+																		</c:forEach>
+																	</c:if>
+																</ul>
+															</div>
+
+														</div>
+													</td>
+													<td>${communityitem.getCommunityholder()}</td>
+													<td id="city_${communityitem.getCityid()}">${communityitem.getCityname()}</td>
+													<td>${communityitem.getImurlout().getCount() == null ? "-" : communityitem.getImurlout().getCount()}/${communityitem.getImurlout().getLimit() == null ? "-" : communityitem.getImurlout().getLimit()}</td>
+													<td>${communityitem.getCreatetime()}</td>
+													<td>${communityitem.getImurlout().getLastmessage()}</td>
+													<td>
+													<a href="javascript:void(0)" class="ibtn edit" src="<%=contextPath%>/resources/images/bianji.png" title="编辑" id="editgroup">编辑</a> 
+													<a href="javascript:void(0)" class="ibtn add singleAdd" src="<%=contextPath%>/resources/images/tianjia.png" title="添加" id="addgroup">添加</a> 
+													<a href="javascript:void(0)" class="ibtn getout"src="<%=contextPath%>/resources/images/zhuanrang.png" title="转让" id="transfergroup">转让</a> 
+													<a href="javascript:void(0)" class="ibtn delete delBtn" src="<%=contextPath%>/resources/images/delete.png" title="删除">删除</a> 
+													<a href="javascript:void(0)" class="ibtn share" src="<%=contextPath%>/resources/images/fenxiang.png" title="分享" id="sharegroup">分享</a> 
+													<a href="javascript:changeGroup('${communityitem.getCommunityid()}',encodeURI('${communityitem.getCommunityname()}'),${communityitem.getImurlout().getCount() == null ? "-" :
+														communityitem.getImurlout().getCount()},${communityitem.getImurlout().getLimit() ==
+														null ? "-" :communityitem.getImurlout().getLimit()})" class="ibtn changeGroup" src="<%=contextPath%>/resources/images/fenxiang.png"
+														title="成员" id="changeGroup">成员</a>
+													<a href="javascript:void(0)" class="ibtn message" title="消息">消息</a>
+													</td>
+												</tr>
+											</c:forEach>
+										</c:when>
+										<c:otherwise>
+											<tr>
+												<td colspan='12' style="text-align: center;">没有搜索到相关关键词的结果</td>
+											</tr>
+										</c:otherwise>
+									</c:choose>
+								</tbody>
+
+							</table>
+							<div class="pageo clearfix">
+								<div class="page" id="tbody1_page">
+									<span>共<i>${totalcount }</i>条记录 <i>${currentindex}</i>/${totalpage}页（20项/页）
+									</span>
+									<div id="pageNum" class="page-num clearfix">
+										<div id="firstPage" class="sty1">首页</div>
+										<div id="priviousPage" class="sty1">上一页</div>
+										<c:choose>
+											<c:when test="${totalpage>0 }">
+												<c:choose>
+													<c:when test="${totalpage<=3 }">
+														<c:forEach begin="1" end="${totalpage }" var="stat">
+															<div id="front_${stat }"
+																<c:if test="${stat==pageindex}">class="cur"</c:if>>${stat }</div>
+														</c:forEach>
+													</c:when>
+													<c:otherwise>
+														<c:forEach
+															begin="${totalpage-pageindex>2?pageindex:(totalpage-2) }"
+															end="${pageindex+(totalpage-pageindex>2?2:(totalpage-pageindex)) }"
+															var="stat">
+															<div id="front_${stat }"
+																<c:if test="${stat==pageindex}">class="cur"</c:if>>${stat }</div>
+														</c:forEach>
+														<c:if test="${totalpage-pageindex>2 }">
+															<div id="middlePage">…</div>
+														</c:if>
+													</c:otherwise>
+												</c:choose>
+											</c:when>
+											<c:otherwise>
+												<div class="cur">1</div>
+											</c:otherwise>
+										</c:choose>
+										<div id="nextPage" class="sty1">下一页</div>
+										<div id="lastPage" class="sty1">尾页</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</c:otherwise>
+				</c:choose>
+
+				<!-- section-c end -->
+
+
+			</div>
+		</div>
+		<!-- content-c end -->
+	</div>
+	<!-- content end -->
+	<!-- 添加页面 -->
+	<div class="alert-box addBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">新建群</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<div class="alert-tab">
+					<div class="tab-c">
+						<div class="tab-c-item">
+							<div class="tab-line clearfix">
+								<select type="region">
+									<option value="">请选择大区</option>
+								</select> 
+								<select type="city">
+									<option value="">请选择城市</option>
+								</select> 
+								<select type="groupCate">
+									<option value="">请选择群分类</option>
+								</select>
+							</div>
+							<div class="tab-line clearfix" style="display:none;">
+								<div class="tab-line-label">楼盘id：</div>
+								<div class="tab-line-input" style="margin-top: -4px;">
+									<input type="text" id="addId">
+								</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">群名称：</div>
+								<div class="tab-line-input" style="margin-top: -4px;">
+									<input type="text" id="addname">
+								</div>
+							</div>
+							<div class="tab-line clearfix" style="padding-top: 18px;">
+								<div class="tab-line-label">群规模：</div>
+								<div class="tab-line-input clearfix" id="addlimit">
+									<div class="tli-item cur clearfix">
+										<i></i> <span>300</span>
+									</div>
+									<div class="tli-item clearfix">
+										<i></i> <span>500</span>
+									</div>
+									<div class="tli-item clearfix">
+										<i></i> <span>1000</span>
+									</div>
+								</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">群介绍：</div>
+								<div class="tab-line-input" style="margin-top: -2px;">
+									<textarea id="addnotice"></textarea>
+								</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">群头像：</div>
+								<div class="tab-line-input clearfix">
+								<div class="tli-item" style="margin-right: 10px; width: 60px; height: 60px; overflow: hidden;">
+								 <img id="uploadgroupimg" height="60" width="60" src="http://communitymgr.im.fang.com/resources/images/defimg.jpg"> </div>
+									<div class="tli-item">
+										<div class="clearfix">
+											<div class="btn2" id="uploadimg">上传图片</div>
+										</div>
+										<div class="lit-font">上传图片建议尺寸：400×400像素</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- tab-c-item end -->
+						<div class="tab-c-item" style="display: none;">
+							<div class="tab-line clearfix">
+								<input class="input-sty2" type="text" id="addinput"
+									placeholder="用户名">
+								<div class="btn3" id="addusersearch">搜索</div>
+							</div>
+
+							<div class="tab-line clearfix">
+								<div class="tl-left">
+									<div class="t">最近联系人</div>
+									<div class="c">
+										<div class="c-list cur">
+											<div class="c-list-c" id="unadduser"></div>
+										</div>
+									</div>
+								</div>
+								<div class="tl-left de">
+									<div class="t">
+										已选成员
+										<div class="p-num addlistcount">
+											<i>0</i> <span>/</span> <i>200</i>
+										</div>
+									</div>
+									<div class="c">
+										<div class="c-list cur">
+											<div class="c-list-c" id="adduser"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn1-o">
+				<a class="btn1 Create">确认</a>
+			</div>
+		</div>
+		<input type="hidden" id="regionCityData">
+	</div>
+	<!-- alert-box end -->
+	<!-- 添加成功返回 -->
+	<div class="alert-box sty2 addSuc">
+		<div class="alert">
+			<div class="alert-con">
+				<div class="alert-suc clearfix">
+					<i class="suc"></i><span class="suc-text">创建成功!</span>
+				</div>
+				<div class="alert-suc clearfix addcomname">
+					<span>群名：</span> <span>房天下秒杀群</span>
+				</div>
+				<div class="alert-suc clearfix addcomid">
+					<span>群号：</span> <span>1000000</span>
+				</div>
+				<div class="alert-suc clearfix">
+					<span>群二维码：</span>
+					<div class="erweima-o clearfix addcomqr">
+						<div>
+							<img src="<%=contextPath%>/resources/images/erweima.jpg">
+						</div>
+						<div>
+							<div class="ewm-text" style="margin-bottom: 10px;">
+								<a class="jiathis_button_loadlink" data-clipboard-text=""
+									id="copylink">复制</a>
+							</div>
+							<div class="ewm-text">
+								<a class="jiathis_button_loadimage" href="" download="100.jpg">保存到电脑</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="alert-suc">
+					<p>快去分享群组，吸引小伙伴们加入！</p>
+				</div>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 addSucConfirm">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<!-- 修改模态框 -->
+	<div class="alert-box updateBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">修改群</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<div class="alert-tab">
+					<div class="tab-t clearfix">
+						<div class="cur" style="text-align: center">
+							<i></i>修改群信息
+						</div>
+					</div>
+					<div class="tab-c">
+						<div class="tab-c-item">
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">分类：</div>
+								<div class="tab-line-input clearfix " id="upcatgdiv">
+									<div id="upcatg_1" class="tli-item cur clearfix">
+										<i></i> <span>新房</span>
+									</div>
+									<div id="upcatg_2" class="tli-item clearfix">
+										<i></i> <span>二手房</span>
+									</div>
+									<div id="upcatg_3" class="tli-item clearfix">
+										<i></i> <span>控股</span>
+									</div>
+								</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">群名称：</div>
+								<div class="tab-line-input" style="margin-top: -4px;">
+									<input type="text" id="upname">
+								</div>
+							</div>
+							<!--<div class="tab-line clearfix" style="padding-top: 18px;">
+                <div class="tab-line-label">群规模：</div>
+                <div class="tab-line-input clearfix" id="uplimit">
+                  <div class="tli-item cur clearfix">
+                    <i></i> <span>300</span>
+                  </div>
+                  <div class="tli-item clearfix">
+                    <i></i> <span>500</span>
+                  </div>
+                  <div class="tli-item clearfix">
+                    <i></i> <span>1000</span>
+                  </div>
+                  <div class="tli-item clearfix">
+                    <i></i> <span>2000</span>
+                  </div>
+                </div>
+              </div>-->
+							<!--<div class="tab-line clearfix">
+                <div class="tab-line-label">城市：</div>
+                <div class="tab-line-input upcity">
+                  <div id="city_add" class="add-t">
+                    <span id="city_add_0">全部</span><i></i>
+                  </div>
+
+                  <div class="add-c" style="display: none;">
+                    <ul id="city_add_all" class="clearfix">
+
+                    </ul>
+                  </div>
+
+                </div>
+              </div> -->
+							<!-- <div class="tab-line clearfix">
+                <div class="tab-line-label">群介绍：</div>
+                <div class="tab-line-input" style="margin-top: -2px;">
+                  <textarea id="upnotice"></textarea>
+                </div>
+              </div>-->
+							<div class="tab-line clearfix">
+								<div class="tab-line-label">群头像：</div>
+								<div class="tab-line-input clearfix">
+									<div class="tli-item"
+										style="margin-right: 10px; width: 60px; height: 60px; overflow: hidden;">
+										<img id="resetgroupimg" height="60" width="60"
+											src="<%=contextPath%>/resources/images/defimg.jpg">
+									</div>
+									<div class="tli-item">
+										<div class="clearfix">
+											<div class="btn2" id="resetloadimg">上传图片</div>
+										</div>
+										<div class="lit-font">上传图片建议尺寸：400×400像素</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- tab-c-item end -->
+					</div>
+				</div>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 comUpdate">完成修改</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- 单行添加成员弹框 -->
+	<div class="alert-box singleAddBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">邀请群成员</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<div class="alert-tab">
+					<div class="tab-c">
+						<div class="tab-c-item">
+							<div class="tab-line clearfix" style="padding-top: 0">
+								<input class="input-sty2" type="text" id="singleaddinput"
+									placeholder="用户名">
+								<div class="btn3" id="singleaddusersearch">搜索</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tl-left">
+									<div class="t">最近联系人</div>
+									<div class="c">
+										<div class="c-list cur">
+											<div class="c-list-c" id="singleunadduser"></div>
+										</div>
+										<div class="c-list">
+											<div class="c-list-c"></div>
+										</div>
+									</div>
+								</div>
+								<div class="tl-left de">
+									<div class="t">
+										已选成员
+										<div class="p-num singlecount">
+											<i>0</i> <span>/</span> <i>200</i>
+										</div>
+									</div>
+									<div class="c">
+										<div class="c-list cur">
+											<div class="c-list-c" id="singleadduser"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 singleAddConfirm">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<!-- 转让群模态框 -->
+	<div class="alert-box zr">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">转让群</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<div class="alert-tab">
+					<div class="tab-c">
+						<div class="tab-c-item">
+							<div class="tab-line clearfix" style="padding-top: 0">
+								<div style="float: left; font-size: 14px; color: #333;">请选择您要转让的成员</div>
+								<div style="float: right;">
+									<input class="input-sty2" type="text" id="transferinput"
+										placeholder="邮箱">
+									<div class="btn3" id="transferusersearch">搜索</div>
+								</div>
+							</div>
+							<div class="tab-line clearfix">
+								<div class="tl-left" style="width: 100%">
+									<div class="t">群员列表</div>
+									<div class="c" style="width: 100%">
+										<div class="c-list cur">
+											<div class="c-list-c" id="transferuser"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 zrBtn">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<div class="alert-box sty2 delBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">提示</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<p
+					style="padding: 50px 0; text-align: center; color: #333; font-size: 16px;">确认要删除该群吗？</p>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 delConfirm">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<!-- 删除方法 -->
+	<!-- <div class="alert-box sty2 realDelBox">
+    <div class="alert">
+      <div class="top">
+        <span class="top-h">提示</span> <span class="close"></span>
+      </div>
+      <div class="alert-con">
+        <p style="padding: 30px 0; text-align: center; color: #333; font-size: 16px;">
+          确认要删除该群吗？<br> <span style="display: block; margin-top: 7px; color: #666; font-size: 12px;">点击“确定”之后，将无法恢复该群</span>
+        </p>
+      </div>
+      alert-con end
+      <div class="btn1-o">
+        <a class="btn1 realDelConfirm">确定</a>
+      </div>
+    </div>
+  </div> -->
+	<!-- alert-box end -->
+	<div class="alert-box sty2 huifuBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">提示</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<p
+					style="padding: 45px 0; text-align: center; color: #333; font-size: 16px;">确认要恢复该群吗？</p>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 huifuConfirm">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<!-- 转移方法 -->
+	<div class="alert-box sty2 zrConfirmBox">
+		<div class="alert">
+			<div class="top">
+				<span class="top-h">提示</span> <span class="close"></span>
+			</div>
+			<div class="alert-con">
+				<p
+					style="padding: 50px 0; text-align: center; color: #333; font-size: 16px;">
+					您确认要转让该群吗？<br> <span
+						style="display: block; margin-top: 7px; color: #666; font-size: 12px;">点击“确定”之后，您将立即失去群主身份！</span>
+				</p>
+			</div>
+			<!-- alert-con end -->
+			<div class="btn1-o">
+				<a class="btn1 zrConfirmBtn">确定</a>
+			</div>
+		</div>
+	</div>
+	<!-- alert-box end -->
+	<!-- 分享方法 -->
+	<c:choose>
+		<c:when test="${not empty communitylists}">
+			<c:forEach items="${communitylists}" var="communityitem"
+				varStatus="status">
+				<div class="alert-box sty3 shareBox"
+					id="divshare_${communityitem.getCommunityid()}">
+					<div class="alert">
+						<div class="top">
+							<span class="top-h">分享"${communityitem.getCommunityname()}"到</span>
+							<span class="close"></span>
+						</div>
+						<div class="alert-con clearfix" style="padding-bottom: 30px;">
+							<div class="alert-share-l">
+								<img src="${communityitem.getQrcode()}">
+								<p
+									style="margin-top: 5px; color: #333; font-size: 14px; text-align: center;">使用房天下app扫描分享</p>
+							</div>
+							<div class="alert-share-r">
+								<div class="share-item">
+									<a class="jiathis_button_qzone"
+										href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${communityitem.getQrurlencode()}&desc=&summary=&title=%E6%88%BF%E5%A4%A9%E4%B8%8B%E7%BE%A4%E7%BB%84-IM%E7%BE%A4%E7%BB%84%E6%9C%8D%E5%8A%A1-QQ%E7%A9%BA%E9%97%B4&pics=&site="
+										target="_blank" id="sharebyqq"> <img
+										src="<%=contextPath%>/resources/images/fqq.jpg">
+									</a>
+								</div>
+								<div class="share-item">
+									<a class="jiathis_button_sina"
+										href="http://service.weibo.com/share/share.php?title=%e6%88%bf%e5%a4%a9%e4%b8%8b%e7%be%a4%e7%bb%84-IM%e7%be%a4%e7%bb%84%e6%9c%8d%e5%8a%a1-%e5%be%ae%e5%8d%9a&url=${communityitem.getQrurl()}"
+										target="_blank" id="sharebysina"> <img
+										src="<%=contextPath%>/resources/images/fwb.jpg">
+									</a>
+								</div>
+								<div class="share-item">
+									<a class="jiathis_button_loadlink" href="#"
+										data-clipboard-text="${communityitem.getQrurl()}"
+										id="sharebyurl"> <img
+										src="<%=contextPath%>/resources/images/fzlianjie.jpg">
+									</a>
+								</div>
+								<div class="share-item">
+									<a id="aimg" href="${communityitem.getQrcode()}"
+										download="100.jpg" id="sharebyimg"> <img
+										src="<%=contextPath%>/resources/images/fzerweima.jpg">
+									</a>
+								</div>
+							</div>
+						</div>
+						<!-- alert-con end -->
+					</div>
+				</div>
+			</c:forEach>
+		</c:when>
+		<c:otherwise>
+			<div class="alert-box sty3 shareBox">
+				<div class="alert">
+					<div class="top">
+						<span class="top-h">分享房天下秒杀群到</span> <span class="close"></span>
+					</div>
+					<div class="alert-con clearfix" style="padding-bottom: 30px;">
+						<div class="alert-share-l">
+							<img src="<%=contextPath%>/resources/images/erweima1.jpg">
+							<p
+								style="margin-top: 5px; color: #333; font-size: 14px; text-align: center;">使用房天下app扫描分享</p>
+						</div>
+						<div class="alert-share-r">
+							<div class="share-item">
+								<a class="jiathis_button_qzone" href="#" target="_blank"
+									id="sharebyqq"> <img
+									src="<%=contextPath%>/resources/images/fqq.jpg">
+								</a>
+							</div>
+							<div class="share-item">
+								<a class="jiathis_button_sina" href="#" target="_blank"
+									id="sharebysina"> <img
+									src="<%=contextPath%>/resources/images/fwb.jpg">
+								</a>
+							</div>
+							<div class="share-item">
+								<a class="jiathis_button_loadlink" href="#" id="sharebyurl">
+									<img src="<%=contextPath%>/resources/images/fzlianjie.jpg">
+								</a>
+							</div>
+							<div class="share-item">
+								<a id="aimg" href="#" download="100.jpg" id="sharebyimg"> <img
+									src="<%=contextPath%>/resources/images/fzerweima.jpg">
+								</a>
+							</div>
+						</div>
+					</div>
+					<!-- alert-con end -->
+				</div>
+			</div>
+		</c:otherwise>
+	</c:choose>
+
+	<input type="file" name="uploadImg" id="realuploadImg"
+		style="display: none;" class="upload-input">
+
+
+	<script type="text/javascript"		src="<%=contextPath%>/resources/js/jquery.ui.widget.js"></script>
+	<script type="text/javascript"		src="<%=contextPath%>/resources/js/jquery.xdr-transport.js"></script>
+	<script type="text/javascript"	src="<%=contextPath%>/resources/js/jquery.fileupload.js"></script>
+	<script type="text/javascript"	src="<%=contextPath%>/resources/js/clipboard.min.js"></script>
+			<script type="text/javascript" src="<%=contextPath%>/resources/js/index.js?20170512" ></script>
+	<script type="text/javascript" >
+
+            function changeGroup(groupid,groupname,groupcount,grouplimit) {
+            	debugger
+              window.location.href = contextPath+"/member.html?groupid="+ groupid + "&groupname=" + groupname + "&groupcount="+ groupcount + "&grouplimit=" + grouplimit;
+		}
+		$('#uploadimg').click(function() {
+			$('#realuploadImg').click();
+		});
+		$('#realuploadImg').fileupload(
+				{
+					
+					url : contextPath+"/uploadqunpic.do?",
+					dataType : 'json',
+					acceptFileTypes : /(\.|\/)(gif|jpe?g|png)$/i,
+					maxFileSize : 5000000,
+					add : function(e, data) {
+						debugger
+						var uploadErrors = [];
+						var acceptFileTypes = /(\.|\/)(gif|jpe?g|png)$/i;
+						if (data.originalFiles[0]['type'].length == 0
+								|| !acceptFileTypes
+										.test(data.originalFiles[0]['type'])) {
+							uploadErrors.push('图片类型错误');
+						}
+						if (data.originalFiles[0]['size'] > 200000) {
+							uploadErrors.push('图片不能大于200K');
+						}
+
+						if (uploadErrors.length > 0) {
+							alert(uploadErrors.join("\n"));
+						} else {
+							data.submit();
+						}
+
+					},
+					// 上传完成后
+					done : function(e, data) {
+						debugger
+						if (data.result.result == "200") {
+
+							var imageUrl = data.result.data.uploadImg;
+							//裁剪图片
+							var ratioPic = new Image();
+							ratioPic.src = imageUrl;
+							ratioPic.onload = function() {
+								/* var ratioPicW = ratioPic.width;
+								var ratioPicH = ratioPic.height;
+								if (ratioPicW > 400 || ratioPicH > 400) {
+									alert("上传的图片超过400*400的，请重新上传");
+								} else {
+									var afterImg = imageUrl;
+									//判断是否为链接
+									$('#uploadgroupimg').attr('src',
+											afterImg);
+
+								} */
+
+								var afterImg = imageUrl;
+								//判断是否为链接
+								$('#uploadgroupimg').attr('src', afterImg);
+							}
+						} else {
+							alert(data.result.message);
+						}
+
+						//localsaveVideoCover(imageUrl);
+					},
+					fail : function(e, data) {
+						alert("上传的图片不符合，请重新上传");
+					}
+				});
+	</script>
+
+	<script type="text/javascript">
+		var totalPage = "${totalpage}";
+		var pageSize = 20;
+		var currentIndex = "${pageindex}";
+		var isdelete = "${isdelete}";
+		var isupdate = false;
+		var order = "${orderstr}";
+		var searchtext = "${searchtext}";
+
+		//修改
+		var updatecommunityid = "";
+		var updatecategory = "";
+		var updatecommunityname = "";
+		var updatecommunityholder = "";
+
+		//添加
+		var addcategory = "";
+		var addcommunityname = "";
+		var addlimit = "";
+		var addnotice = "";
+		var addpic = "";
+		var addcity = "";
+		var addgrouplist = "";
+
+		//单个添加
+		var singleaddimuser = "";
+		var singleaddid = "";
+		var singleaddholder = "";
+
+		//删除
+		var delcommunityid = "";
+		var isalldelete = false;
+
+		//恢复
+		var reccommunityid = "";
+		var isallrec = false;
+
+		//移交
+		var transcityid = "";
+		var transcommunityid = "";
+		var transcommunityholder = "";
+		var oldholder = "";
+
+		//复制
+		var clipboard = new Clipboard('.jiathis_button_loadlink');
+
+		$(document).ready(		
+				function() {
+					debugger
+					//初始化群类别
+					initGropuCate($("div[type='maingroupCate']").find("ul"),"li");
+					//初始化大区城市
+					initRegionCity($("div[type='mainregion']").find("ul"),$("div[type='maincity']").find("ul"),"li","no")
+					
+					if (isdelete != null && isdelete == 1) {
+						var $self = $('#delgrouplist');
+						var border = $self.parent().find('.bottom-border');
+						var left = $self.offset().left
+								- $self.parent().offset().left, width = $self
+								.outerWidth();
+						var index = $self.index();
+						/* $self.parents('.section')
+								.find('.section-c').hide();
+						$self.parents('.section').find(
+								'.section-c:eq(' + index + ')')
+								.show(); */
+
+						$self.addClass('cur').siblings().removeClass('cur');
+						border.stop().animate({
+							left : left + 'px',
+							width : width + 'px'
+						}, 0);
+					}
+				});
+	</script>
+	<!-- alert-box end -->
+	<script type="text/javascript">
+		isSelected(1);
+	</script>
+
+</body>
+</html>

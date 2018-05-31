@@ -1,0 +1,567 @@
+/**
+ * File：SysUserOperateController.java
+ * Package：com.fang.im.management.web.controller
+ * Author：jin
+ * Date：2017年4月14日 下午1:03:10
+ * Copyright (C) 2017-2017 房天下-版权所有
+ */
+package com.fang.im.management.web.controller;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresRoles;
+import org.apache.shiro.subject.Subject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fang.common.service.FangOaOperateService;
+import com.fang.common.service.vo.FangOaOrPassportInfo;
+import com.fang.common.utils.OutParameterUtils;
+import com.fang.im.management.po.SysCity;
+import com.fang.im.management.po.SysRole;
+import com.fang.im.management.po.SysUserResource;
+import com.fang.im.management.service.CommunityOperateService;
+import com.fang.im.management.service.SysCityOperateService;
+import com.fang.im.management.service.SysRoleOperateService;
+import com.fang.im.management.service.SysUserOperateService;
+import com.fang.im.management.shiro.FangOaAuthenAndAuthorRealm;
+import com.fang.im.management.systemexception.CustomeBusinessJsonExciption;
+import com.fang.im.management.utils.PropertiesUtils;
+import com.fang.im.management.web.vo.AddUserInVo;
+import com.fang.im.management.web.vo.CommonOutVo;
+import com.fang.im.management.web.vo.GetUserInfoByUserIdOutVo;
+import com.fang.im.management.web.vo.PermissionManagerInVo;
+import com.fang.im.management.web.vo.ResultType;
+import com.fang.im.management.web.vo.UpdateUserInfoInVo;
+
+/**
+ * <p>
+ * Description: SysUserOperateController
+ * </p>
+ *
+ * @author jinshilei 2017年4月14日
+ * @version 1.0
+ *
+ */
+@Controller
+public class SysUserOperateController {
+
+	/**
+	 * 角色信息操作
+	 */
+	@Autowired
+	private SysRoleOperateService sysRoleOperateService;
+
+	/**
+	 * 城市信息操作
+	 */
+	@Autowired
+	private SysCityOperateService sysCityOperateService;
+
+	/**
+	 * 用户信息操作
+	 */
+	@Autowired
+	private SysUserOperateService sysUserOperateService;
+
+	/**
+	 * 群信息操作
+	 */
+	@Autowired
+	private CommunityOperateService communityOperateService;
+
+	/**
+	 * 自定义realm
+	 */
+	@Autowired
+	private FangOaAuthenAndAuthorRealm realm;
+
+	/**
+	 *
+	 * 条件查询、分页查询用户信息
+	 *
+	 * @param model
+	 *            输出参数
+	 * @param inVo
+	 *            输入参数
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping(value = "/permission.html")
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public String permissionManagerPage(Model model, PermissionManagerInVo inVo) throws Exception {
+		String email = null;
+		List<Integer> roleIds = null;
+		List<Integer> cityIds = null;
+		Integer pageSize = Integer.parseInt(PropertiesUtils.getPropertyValue("pageSize"));
+		Integer pageIndex = 1;
+		if (!StringUtils.isEmpty(inVo.getEmail())) {
+			email = inVo.getEmail().replace("@fang.com", "");
+		}
+		if (inVo.getRoleId() != null && inVo.getRoleId() > 0) {
+			roleIds = new ArrayList<Integer>();
+			roleIds.add(inVo.getRoleId());
+		}
+		if (inVo.getCityId() != null && inVo.getCityId() > 0) {
+			cityIds = new ArrayList<Integer>();
+			cityIds.add(inVo.getCityId());
+		}
+		if (inVo.getPageIndex() != null && inVo.getPageIndex() > 0) {
+			pageIndex = inVo.getPageIndex();
+		}
+
+		if (inVo.getPageSize() != null && inVo.getPageSize() > 0) {
+			pageSize = inVo.getPageSize();
+		}
+		// 获取当前登录用户可操作的角色
+		Collection<SysRole> rolesForPermission = null;
+		// 获取当前登录用户具有权限的城市
+		Collection<SysCity> citiesForPermission = null;
+		// 获取当前登录用户可以查看的用户的第一页数据
+		List<SysUserResource> users = null;
+		OutParameterUtils<Integer> total = new OutParameterUtils<Integer>();
+		SysUserResource currentLoginUser = (SysUserResource) SecurityUtils.getSubject().getPrincipal();
+		String roleName = currentLoginUser.getSysRole().getRoleName();
+		if (roleName.equals("超级管理员")) {
+			rolesForPermission = sysRoleOperateService.getAllRoles().values();
+			citiesForPermission = sysCityOperateService.getAllCities().values();
+			users = sysUserOperateService.getPageUserByRolesAndCitiesAndEmail(roleIds, cityIds, email, pageIndex,
+					pageSize, total);
+		} else if (roleName.equals("管理员")) {
+			SysRole communityOwnerRole = sysRoleOperateService.getByRoleName("普通群主");
+			roleIds = new ArrayList<Integer>();
+			// 只能查询普通群主
+			roleIds.add(communityOwnerRole.getSysRoleId());
+			rolesForPermission = new ArrayList<SysRole>();
+			rolesForPermission.add(communityOwnerRole);
+			citiesForPermission = currentLoginUser.getSysCities();
+			if (cityIds != null) {
+				// 验证对于所传城市，当前用户是否有权限
+				boolean isHasPermission = false;
+				for (SysCity city : citiesForPermission) {
+					if (city.getSysCityId().equals(cityIds.get(0))) {
+						isHasPermission = true;
+						break;
+					}
+				}
+				if (isHasPermission) {
+					users = sysUserOperateService.getPageUserByRolesAndCitiesAndEmail(roleIds, cityIds, email,
+							pageIndex, pageSize, total);
+				} else {
+					throw new CustomeBusinessJsonExciption("没有该城市权限");
+				}
+			} else {
+				List<Integer> currentUserCityIds = new ArrayList<Integer>();
+				for (SysCity item : currentLoginUser.getSysCities()) {
+					// 查询当前登录用户具有权限的所有城市的用户
+					currentUserCityIds.add(item.getSysCityId());
+				}
+				users = sysUserOperateService.getPageUserByRolesAndCitiesAndEmail(roleIds, currentUserCityIds, email,
+						pageIndex, pageSize, total);
+			}
+		}
+		// 普通群主角色不能查看系统用户
+		int totalPage = 0;
+		if (total.getValue() > 0) {
+			totalPage = (int) Math.ceil(Double.parseDouble(total.getValue().toString()) / pageSize);
+		}
+		int currentPageRecordCount = 0;
+		if (users != null) {
+			currentPageRecordCount = users.size();
+		}
+		model.addAttribute("roles", rolesForPermission);
+		model.addAttribute("cities", citiesForPermission);
+		model.addAttribute("total", total.getValue());
+		model.addAttribute("totalPage", totalPage);
+		model.addAttribute("pageIndex", pageIndex);
+		model.addAttribute("pageSize", pageSize);
+		model.addAttribute("currentPageRecordCount", currentPageRecordCount);
+		model.addAttribute("users", users);
+		if (!StringUtils.isEmpty(email)) {
+			model.addAttribute("email", email);
+		}
+		if (inVo.getRoleId() != null && inVo.getRoleId() > 0) {
+			model.addAttribute("roleId", inVo.getRoleId());
+		} else {
+			model.addAttribute("roleId", 0);
+		}
+		if (inVo.getCityId() != null && inVo.getCityId() > 0) {
+			model.addAttribute("cityId", inVo.getCityId());
+		} else {
+			model.addAttribute("cityId", 0);
+		}
+		return "views/permission";
+	}
+
+	/**
+	 *
+	 * 添加用户
+	 *
+	 * @param inVo
+	 *            输入参数
+	 * @param request
+	 *            请求
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping(value = "/addUser.do")
+	@ResponseBody
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public CommonOutVo addUser(@RequestBody AddUserInVo inVo, HttpServletRequest request) throws Exception {
+		Subject subject = SecurityUtils.getSubject();
+		if (StringUtils.isEmpty(inVo.getEmail())) {
+			throw new CustomeBusinessJsonExciption("邮箱不能为空");
+		}
+		if (StringUtils.isEmpty(inVo.getRealName())) {
+			throw new CustomeBusinessJsonExciption("真实姓名不能为空");
+		}
+		if (inVo.getRoleId() == null || inVo.getRoleId() <= 0) {
+			throw new CustomeBusinessJsonExciption("请给用户指定角色");
+		}
+
+		SysRole addRole = sysRoleOperateService.getByRoleId(inVo.getRoleId());
+		if (addRole == null) {
+			throw new CustomeBusinessJsonExciption("角色不存在");
+		}
+		boolean isRolePermitted = subject.isPermitted("user:addrole:" + inVo.getRoleId());
+		if (!isRolePermitted) {
+			throw new CustomeBusinessJsonExciption("无权限开通该角色用户");
+		}
+		Set<SysCity> addCities = new HashSet<SysCity>();
+		if (addRole.getRoleName().equals("超级管理员")) {
+			// 如果有权限添加超级管理员，则超级管理员默认就具有所有城市的权限
+			for (SysCity sysCity : sysCityOperateService.getAllCities().values()) {
+				addCities.add(sysCity);
+			}
+		} else {
+			// 添加非超级管理员，必须指定城市。
+			if (inVo.getCityIds() == null || inVo.getCityIds().length <= 0) {
+				throw new CustomeBusinessJsonExciption("请给用户指定城市");
+			}
+			for (Integer cityId : inVo.getCityIds()) {
+				SysCity city = sysCityOperateService.getByCityId(cityId);
+				boolean isCityPermitted = subject.isPermitted("user:addcity:" + cityId);
+				if (!isCityPermitted) {
+					throw new CustomeBusinessJsonExciption("无权限开通该城市用户");
+				}
+				addCities.add(city);
+			}
+		}
+		String email = inVo.getEmail().replace("@fang.com", "");
+		email = email.replace("@soufun.com", "");
+		SysUserResource user = sysUserOperateService.getUserByEmail(email);
+		if (user != null) {
+			throw new CustomeBusinessJsonExciption("该用户已开通系统权限");
+		}
+		// 调用OA接口获取该OA用户绑定的通行证用户名
+		FangOaOrPassportInfo passportInfo = FangOaOperateService.getFangOaOrPassportUserInfo(email, "loginid", "json");
+		if (passportInfo == null) {
+			throw new CustomeBusinessJsonExciption("该用户不存在");
+		}
+		// 向OA注册系统用户
+		String serviceId = PropertiesUtils.getPropertyValue("oa_service_id");
+		boolean registerResult = FangOaOperateService.registerToOa(request, email, serviceId);
+		if (!registerResult) {
+			throw new CustomeBusinessJsonExciption("用户添加失败");
+		}
+		sysUserOperateService.addNewUser(email, passportInfo.getFangname(), inVo.getRealName(), addCities, addRole);
+		// 新增加用户后，清除所有用户的授权缓存
+		realm.clearAllUserAuthorazitionCache();
+		CommonOutVo outVo = new CommonOutVo();
+		outVo.setResult(ResultType.success);
+		return outVo;
+	}
+
+	public static void main(String[] args) {
+		String email = "chenguoan.bj";
+		String serviceId = "370";
+		String ip = "10.2.131.162";
+		FangOaOrPassportInfo passportInfo;
+		try {
+			passportInfo = FangOaOperateService.getFangOaOrPassportUserInfo(email, "loginid", "json");
+			if (passportInfo == null) {
+				throw new CustomeBusinessJsonExciption("该用户不存在");
+			}
+			System.out.println("a--------" + passportInfo.getFangname() + "----" + passportInfo.getOaid());
+			boolean registerResult = FangOaOperateService.registerToOa(ip, email, serviceId);
+			if (!registerResult) {
+				throw new CustomeBusinessJsonExciption("用户添加失败");
+			}
+			System.out.println("registerResult======"+registerResult);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 *
+	 * 查询用户信息
+	 *
+	 * @param userId
+	 *            用id
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping("/getUserByUserId.do")
+	@ResponseBody
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public GetUserInfoByUserIdOutVo getUserInfoByUserId(Integer userId) throws Exception {
+		Subject subject = SecurityUtils.getSubject();
+		SysUserResource currentLoginUser = (SysUserResource) subject.getPrincipal();
+		if (subject.isPermitted("user:select:" + userId)) {
+			SysUserResource user = sysUserOperateService.getUserByUserId(userId);
+			GetUserInfoByUserIdOutVo outVo = new GetUserInfoByUserIdOutVo();
+			if (user != null) {
+				Set<SysCity> userCities = user.getSysCities();
+				Collection<SysCity> currentLoginUserCities = null;
+				if (subject.hasRole("超级管理员")) {
+					currentLoginUserCities = sysCityOperateService.getAllCities().values();
+				} else {
+					currentLoginUserCities = currentLoginUser.getSysCities();
+				}
+				// 获取有权限增加给该用户的城市
+				if (currentLoginUserCities.size() > userCities.size()) {
+					Set<SysCity> canAddCities = new HashSet<SysCity>();
+					for (SysCity sysCity : currentLoginUserCities) {
+						if (!userCities.contains(sysCity)) {
+							canAddCities.add(sysCity);
+						}
+					}
+					outVo.setCanAddCities(canAddCities);
+					// 对于该用户具有权限但当前管理员没有权限的城市，从user中删除掉，不用于管理
+					Set<Integer> shouldDeleteCityIds = new HashSet<Integer>();
+					for (SysCity sysCity : userCities) {
+						if (!currentLoginUserCities.contains(sysCity)) {
+							shouldDeleteCityIds.add(sysCity.getSysCityId());
+						}
+					}
+					if (shouldDeleteCityIds.size() > 0) {
+						Iterator<SysCity> iterator = userCities.iterator();
+						for (int i = 0; i < userCities.size(); i++) {
+							SysCity city = iterator.next();
+							if (shouldDeleteCityIds.contains(city.getSysCityId())) {
+								iterator.remove();
+								i--;
+							}
+						}
+					}
+				}
+			} else {
+				throw new UnauthorizedException("该用户不存在");
+			}
+			outVo.setMessage("");
+			outVo.setResult(ResultType.success);
+			outVo.setUser(user);
+			return outVo;
+		} else {
+			throw new UnauthorizedException("无权查看该用户信息");
+		}
+	}
+
+	/**
+	 *
+	 * 删除用户城市权限
+	 *
+	 * @param userId
+	 *            用户id
+	 * @param cityId
+	 *            城市id
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping("/deleteCity.do")
+	@ResponseBody
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public CommonOutVo deleteCityForUser(Integer userId, Integer cityId) throws Exception {
+		if (userId == null || userId <= 0) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		if (cityId == null || cityId <= 0) {
+			throw new CustomeBusinessJsonExciption("系统不支持该城市");
+		}
+		SysUserResource user = sysUserOperateService.getUserByUserId(userId);
+		if (user == null) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		if (user.getSysRole().getRoleName().equals("超级管理员")) {
+			throw new CustomeBusinessJsonExciption("超级管理员具有所有城市权限，不能删除");
+		}
+		SysCity city = sysCityOperateService.getByCityId(cityId);
+		Set<Integer> cityIds = null;
+		if (city == null) {
+			throw new CustomeBusinessJsonExciption("系统不支持该城市");
+		} else {
+			cityIds = new HashSet<Integer>();
+			cityIds.add(cityId);
+		}
+		Subject subject = SecurityUtils.getSubject();
+		if (!subject.isPermitted("user:deletecity:" + cityId)) {
+			throw new CustomeBusinessJsonExciption("无权删除该用户的城市权限");
+		}
+		// 如果该用户有该城市的自己作为群主的群，需要先将群转移给其他人，再删除城市权限。
+		List<Integer> cityList = new ArrayList<Integer>();
+		cityList.add(cityId);
+		Integer count = communityOperateService.getCountByIsDelete(user.getEmail(), cityList, false);
+		if (count > 0) {
+			throw new CustomeBusinessJsonExciption("禁止删除：请先将用户作为群主的该城市下的群转移");
+		}
+		sysUserOperateService.deleteCityPermissionToUser(userId, cityIds);
+		// 删除某用户城市权限后，清除所有用户的授权缓存
+		realm.clearAllUserAuthorazitionCache();
+		CommonOutVo outVo = new CommonOutVo();
+		outVo.setMessage("");
+		outVo.setResult(ResultType.success);
+		return outVo;
+	}
+
+	/**
+	 *
+	 * 通过用户id更新用户信息、角色和城市权限
+	 *
+	 * @param inVo
+	 *            输入参数
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping("/updateUserInfo.do")
+	@ResponseBody
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public CommonOutVo updateUserInfo(@RequestBody UpdateUserInfoInVo inVo) throws Exception {
+		Subject subject = SecurityUtils.getSubject();
+		if (inVo.getUserId() == null || inVo.getUserId() <= 0) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		SysUserResource user = sysUserOperateService.getUserByUserId(inVo.getUserId());
+		if (user == null) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		if (!subject.isPermitted("user:update:" + inVo.getUserId())) {
+			throw new CustomeBusinessJsonExciption("无权限修改该用户信息");
+		}
+		boolean isUpdate = false;
+		String realName = null;
+		if (!StringUtils.isEmpty(inVo.getRealName()) && !inVo.getRealName().equals(user.getSysUserRealName())) {
+			isUpdate = true;
+			realName = inVo.getRealName();
+		}
+		SysRole roleUpdate = null;
+		Integer roleId = inVo.getRoleId();
+		if (roleId != null && roleId > 0 && roleId != user.getSysRole().getSysRoleId()) {
+			roleUpdate = sysRoleOperateService.getByRoleId(roleId);
+			if (roleUpdate == null) {
+				throw new CustomeBusinessJsonExciption("系统不存在该角色");
+			}
+			if (!subject.isPermitted("user:addrole:" + roleId)) {
+				throw new CustomeBusinessJsonExciption("无权限修改该角色");
+			}
+			isUpdate = true;
+		}
+		Set<Integer> cityIds = new HashSet<Integer>();
+		if ((roleUpdate != null && roleUpdate.getRoleName().equals("超级管理员"))
+				|| user.getSysRole().getRoleName().equals("超级管理员")) {
+			// 有权限将用户角色提升为超级管理员，则将剩余所有城市权限赋给该用户
+			for (SysCity city : sysCityOperateService.getAllCities().values()) {
+				if (!user.getSysCities().contains(city)) {
+					cityIds.add(city.getSysCityId());
+				}
+			}
+		} else {
+			if (inVo.getCitiesAdd() != null && inVo.getCitiesAdd().length > 0) {
+				for (Integer cityId : inVo.getCitiesAdd()) {
+					SysCity city = sysCityOperateService.getByCityId(cityId);
+					if (city == null) {
+						throw new CustomeBusinessJsonExciption("系统中不存在该城市");
+					}
+					if (!subject.isPermitted("user:addcity:" + cityId)) {
+						throw new CustomeBusinessJsonExciption("无权限开通该城市权限");
+					}
+					cityIds.add(cityId);
+				}
+			}
+		}
+		if (!isUpdate && cityIds.size() < 1) {
+			throw new CustomeBusinessJsonExciption("没有要修改的信息");
+		}
+		if (isUpdate) {
+			sysUserOperateService.updateUserInfo(inVo.getUserId(), roleUpdate, realName, null);
+		}
+		if (cityIds.size() > 0) {
+			sysUserOperateService.addCityPermissionToUser(inVo.getUserId(), cityIds);
+		}
+		if (isUpdate || cityIds != null) {
+			// 更新session缓存
+			realm.updateCurrentUserSession(user.getEmail());
+			// 修改用户信息后，清除该用户的授权缓存
+			realm.clearAuthorazitionCacheByEmail(user.getEmail());
+		}
+		CommonOutVo outVo = new CommonOutVo();
+		outVo.setMessage("");
+		outVo.setResult(ResultType.success);
+		return outVo;
+	}
+
+	/**
+	 *
+	 * 通过用户id删除用户
+	 *
+	 * @param userId
+	 *            用户id
+	 * @param request
+	 *            web请求
+	 * @return 返回值
+	 * @throws Exception
+	 *             异常
+	 */
+	@RequestMapping("/deleteUser.do")
+	@ResponseBody
+	@RequiresRoles(value = { "超级管理员", "管理员" }, logical = Logical.OR)
+	public CommonOutVo deleteUser(Integer userId, HttpServletRequest request) throws Exception {
+		if (userId == null || userId <= 0) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		SysUserResource user = sysUserOperateService.getUserByUserId(userId);
+		if (user == null) {
+			throw new CustomeBusinessJsonExciption("用户不存在");
+		}
+		Subject subject = SecurityUtils.getSubject();
+		if (!subject.isPermitted("user:delete:" + userId)) {
+			throw new CustomeBusinessJsonExciption("无权限删除该用户");
+		}
+		// 调用OA接口删除用户在该系统的权限
+		boolean deleteResult = FangOaOperateService.deleteUserFromOa(request, user.getEmail(),
+				PropertiesUtils.getPropertyValue("oa_service_id"));
+		if (deleteResult) {
+			sysUserOperateService.deleteUser(userId);
+		} else {
+			throw new CustomeBusinessJsonExciption("删除失败");
+		}
+		// 删除某用户后，清除所有用户的授权缓存
+		realm.kickoutUserByEmail(user.getEmail());
+		CommonOutVo outVo = new CommonOutVo();
+		outVo.setMessage("");
+		outVo.setResult(ResultType.success);
+		return outVo;
+	}
+}

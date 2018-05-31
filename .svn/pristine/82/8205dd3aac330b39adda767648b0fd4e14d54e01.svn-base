@@ -1,0 +1,449 @@
+package com.fang.im.management.service.impl;
+
+import java.net.URLEncoder;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.fang.common.network.HttpClientUtils;
+import com.fang.common.utils.XmlReaderUtils;
+import com.fang.im.management.utils.ImMd5;
+import com.fang.im.management.utils.ImMd5ForMember;
+import com.fang.im.management.utils.MD5Util;
+import com.fang.im.management.utils.PropertiesUtils;
+import com.fang.im.management.utils.SlMd5;
+import com.fang.im.management.web.vo.out.ImUserServiceInterfaceUrlOut;
+
+/**
+ * 群管理接口service
+ *
+ * @author YZT_SouFun
+ */
+@Service
+public class CommunityServiceImpl {
+
+	/**
+	 * imSecretKey
+	 */
+	private static String imSecretKey = "key_2015-08-27 17:53:45";
+
+	/**
+	 * imGrouptKey
+	 */
+	private static String imGrouptKey = "groupkey_2017-04-07 09:44:69";
+
+	/**
+	 * 通过群ids获取对应群信息
+	 *
+	 * @param goupids
+	 *            群ids,多个以,分割
+	 * @return List<ImUserServiceInterfaceUrlOut>
+	 * @throws Exception
+	 *             异常
+	 */
+	public Map<String, ImUserServiceInterfaceUrlOut> getCommunityListByIdFromImUrl(List<String> goupids)
+			throws Exception {
+
+		if (goupids == null || goupids.size() < 1) {
+			return null;
+		}
+		StringBuilder idlist = new StringBuilder();
+		for (int i = 0; i < goupids.size(); i++) {
+			idlist.append(goupids.get(i) + ",");
+		}
+		idlist.delete(idlist.length() - 1, idlist.length());
+
+		Map<String, ImUserServiceInterfaceUrlOut> map = new HashMap<String, ImUserServiceInterfaceUrlOut>();
+
+		String getCommunityListByIdsUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("im_getGroupInfo"),
+				idlist.toString());
+
+		String result = HttpClientUtils.requestUrl(getCommunityListByIdsUrl, 1000 * 3, "utf-8");
+		List<ImUserServiceInterfaceUrlOut> list = new ArrayList<ImUserServiceInterfaceUrlOut>();
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (!StringUtils.isEmpty(obj.get("data").toString()) && !obj.get("data").toString().equals("error")) {
+					JSONArray jsonArray = obj.getJSONArray("data");
+					if (jsonArray != null) {
+						list = JSON.parseArray(jsonArray.toJSONString(), ImUserServiceInterfaceUrlOut.class);
+					}
+				}
+			}
+		}
+
+		if (list != null && list.size() > 0) {
+			for (ImUserServiceInterfaceUrlOut item : list) {
+				map.put(item.getGroupid(), item);
+			}
+			return map;
+		}
+
+		return null;
+	}
+
+	/**
+	 * 创建群接口
+	 *
+	 * @param username
+	 *            群主民
+	 * @param groupName
+	 *            群名称
+	 * @param goupList
+	 *            群成员列表
+	 * @return boolean 成功标记
+	 * @throws Exception
+	 *             异常
+	 */
+	public Integer addCommunityFromImUrl(String username, String groupName, String goupList) throws Exception {
+		String utf8groupname = URLEncoder.encode(groupName, "utf-8");
+		String utf8username = URLEncoder.encode(username, "utf-8");
+		String utf8goupList = null;
+		if (!com.fang.common.utils.StringUtils.isEmpty(goupList)) {
+			utf8goupList = URLEncoder.encode(goupList, "utf-8");
+		}
+		String sign = MD5Util.Md5(String.format("command=autoCreateGroupgrouplist=%sgroupname=%susername=%s", goupList,
+				groupName, username) + imSecretKey);
+		String addCommunityImUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("autoCreateGroupInterface"),
+				utf8username, utf8groupname, utf8goupList, sign);
+		String result = HttpClientUtils.requestUrl(addCommunityImUrl, 1000 * 3, "utf-8");
+		System.err.println("result---" + result + "------" + addCommunityImUrl);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				return Integer.parseInt(obj.get("msg").toString());
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * 修改群信息
+	 *
+	 * @param username
+	 *            群主
+	 * @param groupid
+	 *            群id
+	 * @param order
+	 *            命令
+	 * @param valuebyorder
+	 *            参数
+	 * @return boolean
+	 * @throws Exception
+	 *             异常
+	 */
+	public boolean updateCommunityFromImUrl(String username, String groupid, String order, String valuebyorder)
+			throws Exception {
+		String urlParam = "";
+		if (!StringUtils.isEmpty(order)) {
+			urlParam = order;
+		}
+		String sign = MD5Util.Md5(String.format("command=modifyGroupInfogroupid=%sorder=%susername=%svaluebyorder=%s",
+				groupid, urlParam, username, valuebyorder) + imGrouptKey);
+
+		String updateCommunityImUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("modifyGroupInfoInterface"),
+				urlParam, URLEncoder.encode(username, "utf-8"), groupid, URLEncoder.encode(valuebyorder, "utf-8"), sign);
+		String result = HttpClientUtils.requestUrl(updateCommunityImUrl, 1000 * 3, "utf-8");
+		System.err.println("updateCommunityFromImUrl----"+updateCommunityImUrl+"----"+result);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (obj.get("data").toString().equals("success")) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 删除群接口
+	 *
+	 * @param username
+	 *            用户名
+	 * @param groupid
+	 *            群ID
+	 * @return boolean 成功标记
+	 * @throws Exception
+	 *             异常
+	 */
+	public boolean delCommunityFromImUrl(String username, String groupid) throws Exception {
+		String sign = MD5Util
+				.Md5(String.format("command=autoDeleteGroupform=%sgroupid=%s", username, groupid) + imSecretKey);
+
+		String delCommunityFromImUrl = MessageFormat.format(
+				PropertiesUtils.getPropertyValue("autoDeleteGroupInterface"), URLEncoder.encode(username, "utf-8"),
+				groupid, sign);
+		String result = HttpClientUtils.requestUrl(delCommunityFromImUrl, 1000 * 3, "utf-8");
+		System.err.println("delCommunityFromImUrl------" + delCommunityFromImUrl + "--------" + result);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (obj.get("data").toString().equals("success")) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 删除群接口
+	 *
+	 * @param username
+	 *            用户名
+	 * @param groupid
+	 *            群ID
+	 * @return boolean 成功标记
+	 * @throws Exception
+	 *             异常
+	 */
+	public boolean recCommunityFromImUrl(String username, String groupid) throws Exception {
+		String sign = MD5Util.Md5(
+				MessageFormat.format("command=restoreGroupgroupid={0}username={1}", groupid, username) + imSecretKey);
+
+		String delCommunityFromImUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("restoreGroupInterface"),
+				groupid, username, sign);
+		String result = HttpClientUtils.requestUrl(delCommunityFromImUrl, 1000 * 3, "utf-8");
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 转让群接口
+	 *
+	 * @param username
+	 *            群主
+	 * @param groupid
+	 *            群id
+	 * @param newgroupowner
+	 *            新群主
+	 * @return boolean 成功标记
+	 * @throws Exception
+	 *             异常
+	 */
+	public boolean transferCommunityFromImUrl(String username, String groupid, String newgroupowner) throws Exception {
+		String sign = MD5Util.Md5(String.format("command=transferGroupgroupid=%snewgroupowner=%susername=%s", groupid,
+				newgroupowner, username) + imGrouptKey);
+
+		String transCommunityImUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("transferGroupInterface"),
+				URLEncoder.encode(username, "utf-8"), groupid, URLEncoder.encode(newgroupowner, "utf-8"), sign);
+		String result = HttpClientUtils.requestUrl(transCommunityImUrl, 1000 * 3, "utf-8");
+		System.out.println("transferCommunityFromImUrltransferCommunityFromImUrl---------" + transCommunityImUrl
+				+ "--------" + result);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (obj.get("data").toString().equals("success")) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 通过邮箱查询最近联系人
+	 *
+	 * @param username
+	 *            im用户名
+	 * @param usertype
+	 *            用户类型
+	 * @return Map<String, String>
+	 *
+	 * @throws Exception
+	 *             异常
+	 */
+	public List<String> getRecentContactsFromImUrl(String username, String usertype) throws Exception {
+		List<String> list = new ArrayList<String>();
+
+		if (StringUtils.isEmpty(usertype)) {
+			usertype = "clientlg,xf,agent,agent_esf";
+		}
+		String getRecentContactsImUrl = MessageFormat
+				.format(PropertiesUtils.getPropertyValue("getRecentContactsInterface"), username, usertype);
+		String result = HttpClientUtils.requestUrl(getRecentContactsImUrl, 1000 * 3, "utf-8");
+		System.out.println("getRecentContactsFromImUrl--------" + getRecentContactsImUrl + "-----" + result);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (!obj.get("data").toString().equals("success")) {
+					JSONArray jsonArray = obj.getJSONArray("data");
+					if (jsonArray != null && jsonArray.size() > 0) {
+						if (jsonArray.size() > 10) {
+							for (int i = 0; i < 8; i++) {
+								JSONObject jsonmap = jsonArray.getJSONObject(i);
+								list.add(jsonmap.get("imusername").toString() + ","
+										+ jsonmap.get("nickname").toString());
+							}
+						} else {
+							for (int i = 0; i < jsonArray.size(); i++) {
+								JSONObject jsonmap = jsonArray.getJSONObject(i);
+								list.add(jsonmap.get("imusername").toString() + ","
+										+ jsonmap.get("nickname").toString());
+							}
+						}
+						return list;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * 添加/删除群成员接口
+	 *
+	 * @param username
+	 *            发起人
+	 * @param groupid
+	 *            群ID
+	 * @param grouplist
+	 *            添加或者删除的用户列表
+	 * @param addOrExitUser
+	 *            添加或者删除命令
+	 * @return boolean
+	 * @throws Exception
+	 *             异常
+	 */
+	public boolean addOrExitCommunityUserFromImUrl(String username, String groupid, String grouplist,
+			String addOrExitUser) throws Exception {
+
+		String sign = MD5Util
+				.Md5(String.format("action=" + addOrExitUser + "command=autoAddExitGroupform=%sgroupid=%sgrouplist=%s",
+						username, groupid, grouplist) + imSecretKey);
+		String addorexituserImUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("autoAddExitGroupInterface"),
+				URLEncoder.encode(username, "utf-8"), groupid, URLEncoder.encode(grouplist, "utf-8"), addOrExitUser,
+				sign);
+		String result = HttpClientUtils.requestUrl(addorexituserImUrl, 1000 * 3, "utf-8");
+		System.err.println("----------" + addorexituserImUrl + "--------" + result);
+		JSONObject obj = JSON.parseObject(result);
+		//
+		if (obj != null && obj.get("ret_code") != null) {
+			if (obj.get("ret_code").toString().equals("0")) {
+				if (obj.get("data").toString().equals("success")) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 生成群ID对应的二维码
+	 *
+	 * @param groupid
+	 *            群ID
+	 * @param username
+	 *            用户名
+	 * @return 二维码url
+	 * @throws Exception
+	 *             异常
+	 */
+	public String getClientCodeFromImUrl(String groupid, String username) throws Exception {
+
+		StringBuffer qrcodeImUrl = new StringBuffer();
+
+		ImMd5 immd5 = new ImMd5();
+		String mykey = immd5.getMD5(username + "soufunchat");
+
+		String signcode = immd5.getMD5(String.format("command=getgroupqrgroupid=%soriginal=false%s", groupid, mykey)
+				+ PropertiesUtils.getPropertyValue("groupQrSecretKey"));
+
+		qrcodeImUrl.append(MessageFormat.format(PropertiesUtils.getPropertyValue("im_getGroupQr"), groupid, username,
+				signcode, false));
+
+		String signurl = immd5.getMD5(String.format("command=getgroupqrgroupid=%soriginal=true%s", groupid, mykey)
+				+ PropertiesUtils.getPropertyValue("groupQrSecretKey"));
+		qrcodeImUrl.append(",");
+
+		String imurlStr = MessageFormat.format(PropertiesUtils.getPropertyValue("im_getGroupQr") + "&original=true",
+				groupid, username, signurl, true);
+
+		String result = HttpClientUtils.requestUrl(imurlStr, 1000 * 3, "utf-8");
+
+		if (!result.contains("ret_code")) {
+			// url编码
+			qrcodeImUrl.append(result);
+		} else {
+			qrcodeImUrl.append("null");
+		}
+
+		return qrcodeImUrl.toString();
+	}
+
+	/**
+	 * 通行证用户查询用户存在接口
+	 *
+	 * @param username
+	 *            用户名
+	 * @return String im用户名
+	 * @throws Exception
+	 *             异常
+	 */
+	@SuppressWarnings({ "static-access" })
+	public String getPassUser(String username) throws Exception {
+		String gbkuser = URLEncoder.encode(username, "gbk");
+		String passportUserUrl = MessageFormat.format(PropertiesUtils.getPropertyValue("passportUserExistInterface"),
+				gbkuser);
+		String result = HttpClientUtils.requestUrl(passportUserUrl, 1000 * 3, "GB2312");
+		System.out.println("getPassUser------" + passportUserUrl + "------" + result);
+		XmlReaderUtils xml = new XmlReaderUtils();
+		String xmlresult = xml.readByNodeName(result, "return_result");
+		if (!StringUtils.isEmpty(xmlresult) && xmlresult.equals("100")) {
+			return username;
+		}
+		return "";
+	}
+
+	/**
+	 * 通行证用户查询手机绑定接口
+	 *
+	 * @param mobile
+	 *            手机号
+	 * @return String im用户名
+	 * @throws Exception
+	 *             异常
+	 */
+	@SuppressWarnings({ "static-access" })
+	public String getPassUserByMobile(String mobile) throws Exception {
+		String passMobileUserUrl = MessageFormat
+				.format(PropertiesUtils.getPropertyValue("interface_mobile_info_2011Interface"), mobile);
+		String result = HttpClientUtils.requestUrl(passMobileUserUrl, 1000 * 3, "GB2312");
+		XmlReaderUtils xml = new XmlReaderUtils();
+		String xmlresult = xml.readByNodeName(result, "return_result");
+		if (!StringUtils.isEmpty(xmlresult) && xmlresult.equals("100")) {
+			String username = xml.readByNodeName(result, "username");
+			return username;
+		}
+		return "";
+	}
+
+}

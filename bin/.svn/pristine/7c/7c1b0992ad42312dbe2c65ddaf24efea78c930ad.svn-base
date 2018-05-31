@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+ xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+ <!-- 将hibernate的事务管理交给spring -->
+ <bean id="transactionManager"
+  class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+  <property name="sessionFactory" ref="sessionFactory_w" />
+ </bean>
+
+ <!-- spring事务增强 -->
+ <tx:advice id="txAdvice" transaction-manager="transactionManager">
+  <tx:attributes>
+   <tx:method name="get*" read-only="true" propagation="REQUIRED" />
+   <tx:method name="update*" propagation="REQUIRED" />
+   <tx:method name="add*" propagation="REQUIRED" />
+   <tx:method name="delete*" propagation="REQUIRED" />
+  </tx:attributes>
+ </tx:advice>
+
+ <!-- spring事务切面 -->
+ <aop:config proxy-target-class="true">
+  <aop:pointcut id="txPointcut"
+   expression="execution(* com.fang.im.management.service..*.*(..))" />
+  <aop:advisor pointcut-ref="txPointcut" advice-ref="txAdvice" />
+ </aop:config>
+
+ <!-- 开启注解事务，用于特殊事务需求 -->
+ <!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+
+ <!-- service层包扫描 -->
+ <context:component-scan base-package="com.fang.im.management.service" />
+</beans>

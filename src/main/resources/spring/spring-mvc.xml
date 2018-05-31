@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+  <!-- 开启shiro的注解 -->
+  <aop:config proxy-target-class="true" />
+  <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+    <property name="securityManager" ref="securityManager" />
+  </bean>
+
+  <bean class="com.fang.im.management.systemexception.SysExceptionResolver"></bean>
+
+  <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+    <property name="converters">
+      <set>
+        <bean class="com.fang.im.management.web.converter.StringToDateConverter" />
+        <bean class="com.fang.im.management.web.converter.StringToIntegerConverter" />
+        <bean class="com.fang.im.management.web.converter.StringToLongConverter" />
+        <bean class="com.fang.im.management.web.converter.StringTrimConverter" />
+      </set>
+    </property>
+  </bean>
+
+  <bean id="webBindingInitializer" class="org.springframework.web.bind.support.ConfigurableWebBindingInitializer">
+    <property name="conversionService" ref="conversionService" />
+  </bean>
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+  </bean>
+
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+    <property name="messageConverters">
+      <list>
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+          <property name="defaultCharset" value="UTF-8" />
+          <property name="supportedMediaTypes">
+            <list>
+              <value>application/json</value>
+            </list>
+          </property>
+        </bean>
+      </list>
+    </property>
+    <property name="webBindingInitializer" ref="webBindingInitializer" />
+  </bean>
+
+  <context:component-scan base-package="com.fang.im.management.web.controller" />
+
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+
+  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <!--1024*200即200k -->
+    <property name="maxUploadSize" value="204800" />
+    <!--resolveLazily属性启用是为了推迟文件解析，以便在UploadAction 中捕获文件大小异常 -->
+    <property name="resolveLazily" value="true" />
+  </bean>
+
+</beans>

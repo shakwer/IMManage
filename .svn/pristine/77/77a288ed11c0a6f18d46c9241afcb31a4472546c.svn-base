@@ -1,0 +1,1193 @@
+$(function() {
+	findBind();
+	firstPageBind();
+	lastPageBind();
+	pageFrontBind();
+	priviousPageBind();
+	nextPageBind();
+	middlePageBind();
+	cutBind();
+	addBind();
+});
+// tab�л�
+$('.bottom-border').each(function(index) {
+	var $self = $(this);
+	var selfWidth = $self.parent().find('span:eq(0)').outerWidth();
+	$(this).width(selfWidth);
+});
+// 头部群转换标记
+$('.dt-left>span')
+		.on(
+				'click',
+				function() {
+					var $self = $(this);
+					var border = $self.parent().find('.bottom-border');
+					var left = $self.offset().left
+							- $self.parent().offset().left, width = $self
+							.outerWidth();
+					var index = $self.index();
+					$self.parents('.section').find('.section-c').hide();
+					$self.parents('.section').find(
+							'.section-c:eq(' + index + ')').show();
+
+					$self.addClass('cur').siblings().removeClass('cur');
+					border.stop().animate({
+						left : left + 'px',
+						width : width + 'px'
+					}, 300);
+				});
+
+// 关闭
+$('.close').click(function() {
+	isupdate = false;
+	isallrec = false;
+	isalldelete = false;
+	// 清除所有
+	$(this).parents('.alert-box').hide();
+});
+// 移交列表
+$('.c-list-t').click(function() {
+	var $self = $(this);
+	if ($self.parent().hasClass('cur')) {
+		$self.parent().removeClass('cur');
+	} else {
+		$self.parent().addClass('cur');
+	}
+
+});
+
+// 数据展示相关
+
+// 时间排序
+$('#order').click(
+		function() {
+			if (order == "desc") {
+				order = "asc";
+			} else if (order == "asc") {
+				order = "desc";
+			} else {
+				order = "asc";
+			}
+			if (currentIndex != null && currentIndex != "") {
+				var url = contextPath+'/community.html?pageindex=' + currentIndex
+						+ '&orderstr=' + order;
+			} else {
+				var url = contextPath+'/community.html' + '?orderstr=' + order;
+			}
+
+			window.location.href = url;
+		});
+// 删除列表时间排序
+$('#delorder').click(
+		function() {
+			if (order == "desc") {
+				order = "asc";
+			} else if (order == "asc") {
+				order = "desc";
+			} else {
+				order = "asc";
+			}
+			if (currentIndex != null && currentIndex != "") {
+				var url = contextPath+'/community.html?isdelete=1&pageindex='
+						+ currentIndex + '&orderstr=' + order;
+			} else {
+				var url = contextPath+'/community.html?isdelete=1&orderstr=' + order;
+			}
+			window.location.href = url;
+		});
+
+// 修改群信息相关
+
+// 搜索相关
+
+// 添加
+$('#addusersearch').click(function() {
+	var name = "";
+	name = $('#addinput').val();
+	if (name.trim().length > 0) {
+		$.post("/searchpassuser.do", {
+			"name" : name
+		}, function(data) {
+			if (data != "") {
+				// $("#unadduser").empty();
+				var name = data;
+				var div = $("<div></div>");
+				div.attr("class", "item clearfix");
+				var img = $("<img\>");
+				img.attr("src", "/resources/images/ph.jpg");
+				var span = $("<span></span>");
+				span.text(name);
+				var ii = $("<i></i>");
+				div.append(img);
+				div.append(span);
+				div.append(ii);
+				bindingRecenetMove(div);
+				if ($('#unadduser>div:eq(0)').length > 0) {
+					div.insertBefore($('#unadduser>div:eq(0)'));
+				} else {
+					$("#unadduser").append(div);
+				}
+
+			}
+		});
+	} else {
+		alert("请输入关键字");
+	}
+
+});
+
+// 删除
+
+// 拉人
+$('#singleaddusersearch').click(function() {
+	var name = "";
+	debugger
+	name = $('#singleaddinput').val();
+	if (name.trim().length > 0) {
+		$.post(contextPath+"/searchpassuser.do", {
+			"name" : name
+		}, function(data) {
+			debugger
+			if (data != "") {
+				// $("#singleunadduser").empty();
+				var name = data;
+				var div = $("<div></div>");
+				div.attr("class", "item clearfix");
+				var img = $("<img\>");
+				img.attr("src", contextPath+"/resources/images/ph.jpg");
+				var span = $("<span></span>");
+				span.text(name);
+				var ii = $("<i></i>");
+				div.append(img);
+				div.append(span);
+				div.append(ii);
+				bindingSingleAddMove(div);
+				if ($('#singleunadduser>div:eq(0)').length > 0) {
+					div.insertBefore($('#singleunadduser>div:eq(0)'));
+				} else {
+					$("#singleunadduser").append(div);
+				}
+
+			}
+		});
+	} else {
+		alert("请输入关键字");
+	}
+});
+
+// 转移
+$('#transferusersearch').click(function() {
+	var name = "";
+	name = $('#transferinput').val();
+	if (name.trim().length > 0) {
+		$.post("/searchuser.do", {
+			"name" : name,
+			"cityid" : transcityid
+		}, function(data) {
+			if (data != "") {
+				$("#transferuser").empty();
+				var i = 0, length = data.length;
+				if (length < 1) {
+					alert('未查到用户');
+				}
+				for (; i < data.length; i++) {
+					var name = data;
+					var div = $("<div></div>");
+					div.attr("class", "item clearfix");
+					var img = $("<img\>");
+					img.attr("src", "/resources/images/ph.jpg");
+					var span = $("<span></span>");
+					span.text(name);
+					var ii = $("<i></i>");
+					div.append(img);
+					div.append(span);
+					div.append(ii);
+					bindingTransfer(div);
+					$("#transferuser").append(div);
+				}
+
+			}
+		});
+	} else {
+		alert("请输入关键字");
+	}
+});
+
+// 查询按钮组
+// 转让人检查
+
+function bindisexist($self, text) {
+	var islimit = false;
+	$self.each(function() {
+		var thistext = $(this).text();
+		if (thistext == text) {
+			islimit = true;
+		}
+	});
+
+	return islimit;
+};
+
+// 创建群
+// 添加人的切换
+function bindingSingleAddMove(elem) {
+	elem.click(function() {
+		var parentName = elem.parent().attr("id");
+		if (parentName == "singleadduser") {
+			var count = $('.singlecount>i:eq(0)').text();
+			count = +count - 1;
+			$('.singlecount>i:eq(0)').text(count);
+			elem.find('i:eq(0)').removeClass("sc");
+			$("#singleunadduser").append(elem);
+		} else if (parentName == "singleunadduser") {
+
+			if (!bindisexist($($('#singleadduser span')), $(this).find(
+					"span:eq(0)").text())) {
+				var count = $('.singlecount>i:eq(0)').text();
+				count = +count + 1;
+				$('.singlecount>i:eq(0)').text(count);
+				elem.find('i:eq(0)').addClass("sc");
+				$("#singleadduser").append(elem);
+			}
+		} else {
+			$('#transferuser .item').removeClass('cur');
+			$(this).addClass('cur');
+		}
+
+	});
+}
+
+function addBind() {
+	var canadd = true;
+	// 添加按钮
+	$('.addQunBtn').click(function() {
+		$('#addnotice').attr("value", "");
+		$('#addnotice').attr("value", "");
+		$('#addlimit').find('.tli-item').removeClass('cur');
+		$('#addlimit').find('.tli-item:eq(0)').addClass('cur');
+		$('#addlimit').find('.tli-item').removeClass('cur');
+		$('#addlimit').find('.tli-item:eq(0)').addClass('cur');
+
+		$('.addBox').show();
+	});
+	// 添加下一步
+	$('.addNext').click(
+			function() {
+				canadd = true;
+				addcategory = $('#addcategory').find('.tli-item.cur>span')
+						.text();
+				if ($('#uploadgroupimg')[0].src.length > 50) {
+					addpic = $('#uploadgroupimg')[0].src;
+				}
+				addlimit = $('#addlimit').find('.tli-item.cur>span').text();
+				addnotice = $('#addnotice').val();
+				var spanCity = $($('#city_add').children('span').get(0));
+				var selectCityId = spanCity.attr('id').split('_')[2];
+				addcity = selectCityId;
+				addcommunityname = $('#addname').val();
+				if (addcommunityname == null || addcommunityname == "") {
+					alert("群名称不能为空");
+					canadd = false;
+				} else if (addcommunityname.length < 2
+						|| addcommunityname.length > 10) {
+					alert("群名称为2到10位字符");
+					canadd = false;
+				}
+				if (addcity == null || addcity == "" || addcity == 0) {
+					alert("城市不能为空");
+					canadd = false;
+				}
+				if (addcategory == "新房") {
+					addcategory = 1;
+				}
+				if (addcategory == "二手房") {
+					addcategory = 2;
+				}
+				if (addnotice.length > 0) {
+					if (addnotice.length < 15 || addnotice.length > 300) {
+						alert("群公告为15到300位字符");
+						canadd = false;
+					}
+				}
+
+				if (canadd) {
+					getRecentMembers();
+					var $self = $(this);
+					var $parentAlert = $self.parents('.alert');
+					$parentAlert.find('.tab-c-item:eq(0)').hide();
+					$parentAlert.find('.tab-c-item:eq(1)').show();
+					$parentAlert.find('.tab-t>div:eq(1)').addClass('cur')
+							.siblings().removeClass('cur');
+					$parentAlert.find('.btn1-o:eq(1)').show();
+					$parentAlert.find('.btn1-o:eq(0)').hide();
+				}
+
+			});
+	// 添加上一步
+	$('.addPre').click(
+			function() {
+				var $self = $(this);
+				var $parentAlert = $self.parents('.alert');
+				$parentAlert.find('.tab-c-item:eq(0)').show();
+				$parentAlert.find('.tab-c-item:eq(1)').hide();
+				$parentAlert.find('.tab-t>div:eq(0)').addClass('cur')
+						.siblings().removeClass('cur');
+				$parentAlert.find('.btn1-o:eq(1)').hide();
+				$parentAlert.find('.btn1-o:eq(0)').show();
+			});
+	// 添加完成
+	$('.comCreate').click(
+			function() {
+				var grouplist = "";
+				$('#adduser span').each(function() {
+					grouplist += $(this).text() + ",";
+				});
+				if (grouplist != "") {
+					grouplist = grouplist.substring(0, grouplist.length - 1);
+					canadd = true;
+				} else {
+					alert("缺少群成员");
+					canadd = false;
+				}
+				if (canadd) {
+					var url = '/addcommunity.do?communityname='
+							+ addcommunityname + '&city=' + addcity
+							+ '&category=' + addcategory + '&grouplist='
+							+ grouplist + '&notice=' + addnotice + '&limit='
+							+ addlimit + '&pic=' + addpic;
+					$.ajax({
+						type : "get",
+						url : url,
+						dataType : "json",
+						success : function(data) {
+							if (data.result == "200") {
+								// alert("添加成功");
+								$('.alert-suc.addcomname>span:eq(1)').text(
+										data.data.communityName);
+								$('.alert-suc.addcomid>span:eq(1)').text(
+										data.data.communityId);
+								var qrcode = data.qrcode;
+								$('div.addcomqr').find('img:eq(0)').attr("src",
+										qrcode.split(',')[0]);
+								$('#copylink').attr("data-clipboard-text",
+										qrcode.split(',')[1]);
+								$('.jiathis_button_loadimage').attr("href",
+										qrcode.split(',')[0]);
+								$('.addSuc').show();
+								$('.addBox').hide();
+								$(this).parents('.alert-box').hide();
+							} else {
+								alert(data.message);
+							}
+						}
+					});
+				}
+
+			});
+}
+// 添加后分享
+$('.addSucConfirm').click(function() {
+	$(this).parents('.alert-box').hide();
+	if (currentIndex != 1) {
+		currentIndex = 1;
+	}
+	getPageGroupInfo(currentIndex, 0);
+});
+
+// span切换
+$('.tli-item i').click(function() {
+	$(this).parent().parent().find('.cur').removeClass('cur');
+	$(this).parent().addClass("cur");
+});
+
+// 城市选择
+// 阻止事件冒泡
+$('.add-c').on('click', function(event) {
+	event.stopPropagation();
+});
+// 城市展示
+$('.add-t').click(function() {
+	var $self = $(this);
+	var parent = $self.parent();
+	if (parent.find('.add-c').is(':hidden')) {
+		$('.add-c').hide();
+		parent.find('.add-c').show();
+	} else {
+		parent.find('.add-c').hide();
+	}
+
+});
+// 创建时城市选择
+$('.add-c li').on('click', function() {
+
+	var $self = $(this);
+	var text = $self.text();
+	var idValue = $self.attr('id').replace(/li_/g, "");
+	var parentSelect = $self.parents('.addcity');
+	if (parentSelect.hasClass('special')) {
+		return;
+	}
+	parentSelect.find('.add-t span').text(text);
+	parentSelect.find('.add-t span').attr('id', idValue);
+	$self.parents('.add-c').hide();
+
+});
+
+// 分类选择
+// 阻止事件冒泡
+$('.up-catg').on('click', function(event) {
+	event.stopPropagation();
+});
+// 分类选择
+$('.up-catg li').on('click', function() {
+
+	var $self = $(this);
+	var text = $self.text();
+	var idValue = $self.attr('id').replace(/li_/g, "");
+	var parentSelect = $self.parents('.selectcatg');
+	if (parentSelect.hasClass('special')) {
+		return;
+	}
+	parentSelect.find('.up-t span').text(text);
+	parentSelect.find('.up-t span').attr('id', idValue);
+	// 选择按钮
+	$('.up-catg li').each(function() {
+		$(this).css('display', 'initial');
+	});
+	$self.hide();
+	$self.parents('.up-catg ').hide();
+
+});
+
+// tab�л�
+$('.bottom-border').each(function(index) {
+	var $self = $(this);
+	var selfWidth = $self.parent().find('span:eq(0)').outerWidth();
+	$(this).width(selfWidth);
+});
+// 单个删除按钮
+$('.delete.delBtn').click(function() {
+	delcommunityid = $(this).parent().parent().children('td').get(2).innerHTML;
+	$('.delBox').show();
+});
+
+// 批量删除按钮
+$('.btn-sty1.delBtn').click(function() {
+	if ($('#tbody1').find('i').hasClass("cur")) {
+		isalldelete = true;
+		$('.delBox').show();
+	}
+});
+// 彻底删除按钮
+$('.realDelBtn').click(function() {
+	$('.realDelBox').show();
+});
+// 正常群多选框点击事件
+$('#tbody1 i').click(function() {
+	if ($(this).hasClass('cur')) {
+		$(this).removeClass('cur');
+	} else {
+		$(this).addClass('cur');
+	}
+
+});
+// 删除群多选框点击事件
+$('#tbody2 i').click(function() {
+	if ($(this).hasClass('cur')) {
+		$(this).removeClass('cur');
+	} else {
+		$(this).addClass('cur');
+	}
+
+});
+// 拉人入群按钮
+$('.singleAdd')
+		.click(
+				function() {
+					debugger
+					$('#singleaddinput').attr("value", "");
+					singleaddid = $(this).parent().parent().children('td').get(
+							2).innerHTML;
+					singleaddholder = $(this).parent().parent().children('td').get(5).innerHTML;
+
+					getSingleAddUsers();
+					debugger;
+					$('.singleAddBox').show();
+					console.log("singleAdd");
+				});
+// 拉人确认按钮
+$('.singleAddConfirm').click(
+		function() {
+			// 获取指定的链接
+			$('#singleadduser span').each(function() {
+				singleaddimuser += $(this).text() + ",";
+			});
+			if (singleaddimuser != "") {
+				singleaddimuser = singleaddimuser.substring(0,
+						singleaddimuser.length - 1);
+			}
+			if (singleaddimuser.trim().length > 0) {
+				var url = '/singleaddser.do?communityid=' + singleaddid
+						+ '&communityholder=' + singleaddholder + "&imuser="
+						+ singleaddimuser;
+				$.ajax({
+					type : "get",
+					url : url,
+					dataType : "json",
+					success : function(data) {
+						if (data.result == "200") {
+							alert("更新成功");
+							getPageGroupInfo(currentIndex, 0);
+						} else {
+							alert(data.message);
+						}
+
+					}
+				});
+			} else {
+				alert("请添加成员");
+			}
+
+		});
+
+// 最近联系人的切换
+function bindingRecenetMove(elem) {
+	elem.click(function() {
+		var parentName = elem.parent().attr("id");
+		if (parentName == "adduser") {
+
+			var count = $('.addlistcount>i:eq(0)').text();
+			count = +count - 1;
+			$('.addlistcount>i:eq(0)').text(count);
+			elem.find('i:eq(0)').removeClass("sc");
+			$("#unadduser").append(elem);
+
+		} else if (parentName == "unadduser") {
+			if (!bindisexist($($("#adduser span")), $(this).find("span:eq(0)")
+					.text())) {
+				var count = $('.addlistcount>i:eq(0)').text();
+				count = +count + 1;
+				$('.addlistcount>i:eq(0)').text(count);
+				elem.find('i:eq(0)').addClass("sc");
+				$("#adduser").append(elem);
+			}
+		}
+
+	});
+}
+
+// 点击事件
+function bindingTransfer(elem) {
+	elem.click(function() {
+		var parentName = elem.parent().attr("id");
+		$('#' + parentName + ' .item').removeClass('cur');
+		$(this).addClass('cur');
+
+	});
+}
+// 通过im用户名查询最近联系人
+function getRecentMembers() {
+	$.get("/getimuser.do", function(data) {
+		$("#adduser").empty();
+		$("#unadduser").empty();
+		var i = 0, length = data.length;
+		for (; i < data.length; i++) {
+			var name = data[i].split(',')[0];
+			var div = $("<div></div>");
+			div.attr("class", "item clearfix");
+			var img = $("<img\>");
+			img.attr("src", "/resources/images/ph.jpg");
+			var span = $("<span></span>");
+			span.text(name);
+			var ii = $("<i></i>");
+			div.append(img);
+			div.append(span);
+			div.append(ii);
+			bindingRecenetMove(div);
+			$("#unadduser").append(div);
+		}
+
+	});
+
+};
+// 获取可转让群成员
+function getTransferUsers() {
+
+	$.post(contextPath+"/getlocaluser.do", {
+		"pageindex" : 1
+	}, function(data) {
+		$("#transferuser").empty();
+		var i = 0, length = data.length;
+		if (length < 1) {
+			alert('未查到用户');
+		}
+		for (; i < data.length; i++) {
+			var name = data[i].split(',')[0];
+			var div = $("<div></div>");
+			div.attr("class", "item clearfix");
+			var img = $("<img\>");
+			img.attr("src", contextPath+"/resources/images/ph.jpg");
+			var span = $("<span></span>");
+			span.text(name);
+			var ii = $("<i></i>");
+			div.append(img);
+			div.append(span);
+			div.append(ii);
+			bindingTransfer(div);
+			$("#transferuser").append(div);
+		}
+	});
+
+};
+
+// 获取单独添加群成员
+function getSingleAddUsers() {
+	debugger
+	$.get(contextPath+"/getimuser.do", function(data) {
+		debugger
+		$("#singleunadduser").empty();
+		$("#singleadduser").empty();
+		if(data==null||data==undefined){
+			alert('未查到用户');
+			return;
+		}
+		var i = 0, length = data.length;
+		if (length < 1) {
+			return;
+			alert('未查到用户');
+		}
+		for (; i < data.length; i++) {
+			var name = data[i].split(',')[0];
+			var div = $("<div></div>");
+			div.attr("class", "item clearfix");
+			var img = $("<img\>");
+			img.attr("src", contextPath+"/resources/images/ph.jpg");
+			var span = $("<span></span>");
+			span.text(name);
+			var ii = $("<i></i>");
+			div.append(img);
+			div.append(span);
+			div.append(ii);
+			bindingSingleAddMove(div);
+			$("#singleunadduser").append(div);
+		}
+	});
+	
+
+};
+
+// 移交人切换
+$('.zr .item').on('click', function() {
+	$('.zr .item').removeClass('cur');
+	$(this).addClass('cur');
+});
+// 移交人展示
+$('.zrBtn').click(
+		function() {
+			transcommunityholder = "";
+			transcommunityholder = $('#transferuser').find(
+					".item.cur>span:eq(0)").text().split('(')[1];
+			var isuuu = "liio(jinshilei)";
+			var newisuu = isuuu.split('(')[1];
+			transcommunityholder = transcommunityholder.substr(0,
+					transcommunityholder.length - 1);
+			$('.zrConfirmBox').show();
+		});
+// 移交完成按钮
+$('.zrConfirmBtn').click(
+		function() {
+			if (transcommunityholder.trim().length > 0) {
+				var url = '/transfercommunity.do?communityid='
+						+ transcommunityid + '&communityholder='
+						+ transcommunityholder;
+				$.ajax({
+					type : "get",
+					url : url,
+					dataType : "json",
+					success : function(data) {
+						if (data.result == "200") {
+							alert("转移成功");
+							getPageGroupInfo(currentIndex, 0);
+						} else {
+							alert(data.message);
+						}
+					}
+				});
+			} else {
+				alert("请选择移交人");
+			}
+
+		});
+// 移交群按钮
+$('.getout')
+		.on(
+				'click',
+				function() {
+					getTransferUsers();
+
+					transcommunityid = $(this).parent().parent().children('td')
+							.get(2).innerHTML;
+					var $cityself = $($(this).parent().parent().children('td')
+							.get(6));
+					transcityid = $cityself.attr('id').split('_')[1];
+					oldholder = $(this).parent().parent().children('td').get(5).innerHTML;
+					$('.zr').show();
+				});
+
+// 修改方法
+$('.edit').click(
+		function(event) {
+			debugger
+			isupdate = true;
+			// 只允许一个一个修改
+			$('.changed-input.canEdit').removeClass('canEdit').attr('disabled',
+					'disabled');
+			$('.up-t.canUpdate').removeClass('canUpdate');
+			event.stopPropagation();
+			var $trself = $(this).parents('tr');
+			$trself.find('.changed-input').removeAttr('disabled').addClass(
+					'canEdit');
+			$trself.find('.up-t').addClass('canUpdate');
+			updatecommunityid = "";
+			updatecommunityname = "";
+			updatecategory = "";
+			// 修改格式
+
+			updatecommunityid = $trself.children('td').get(2).innerHTML;
+			updatecommunityname = $trself.children('td:eq(3)').find(
+					'.changed-input').val();
+			var $catgelem = $trself.find('div.up-t>span:eq(0)');
+			updatecategory = $catgelem.attr('id').split('_')[2];
+			$trself.find('.up-catg>li').each(function() {
+				$(this).show();
+			});
+			$trself.find('#catg_up_li_' + updatecategory + '').hide();
+			// 防止冒泡
+			$('.up-t.canUpdate').on('click', function(event) {
+				event.stopPropagation();
+			});
+			// 绑定点击事件
+			$('.up-t.canUpdate').bind("click", function() {
+				event.stopPropagation();
+				var $self = $(this);
+				var parent = $self.parent();
+				if (parent.find('.up-catg').is(':hidden')) {
+					$('.up-catg').hide();
+					parent.find('.up-catg').show();
+				} else {
+					parent.find('.up-catg').hide();
+				}
+			});
+			$('.updateBox').show();
+		});
+$('body').click(
+		function() {
+			// 获取.changed-input以及canedit,调用接口保存，并修改其页面值
+			if (isupdate) {
+				var endname = "";
+				var endcategory = "";
+				// 解绑事件
+				$('#btn').unbind("click");
+				$('.changed-input.canEdit').each(
+						function(index) {
+							var $self = $(this);
+							var selfWidth = $self.parent().find('span:eq(0)')
+									.outerWidth();
+							$(this).width(selfWidth);
+						});
+				endname = $('.groupname-input.canEdit').val();
+				var $endcategory = $('.up-t.canUpdate').find('span:eq(0)');
+				endcategory = $endcategory.attr('id').split('_')[2];
+
+				if (endname == updatecommunityname
+						&& endcategory == updatecategory) {
+					isupdate = false;
+				}
+				if (endname.trim().length < 2 || endname.trim().length > 10) {
+					alert("群名称为2到10位字符");
+					//恢复原来
+					$('.groupname-input.canEdit').attr("value",updatecommunityname);
+					isupdate = false;
+				}
+				if (endname == updatecommunityname) {
+					endname = "";
+				}
+				if (endcategory == updatecategory) {
+					endcategory = "";
+				}
+
+			}
+
+			if (isupdate) {
+
+				var url = '/updatecommunity.do?communityid='
+						+ updatecommunityid + '&category=' + endcategory
+						+ '&communityname=' + endname;
+				$.ajax({
+					type : "get",
+					url : url,
+					dataType : "json",
+					success : function(data) {
+						if (data.result == "200") {
+							alert("更新成功");
+						} else {
+							alert(data.message);
+						}
+						getPageGroupInfo(currentIndex, 0);
+					}
+				});
+
+			}
+
+			$('.changed-input').removeClass('canEdit').attr('disabled',
+					'disabled');
+			$('.up-t').removeClass('canUpdate');
+			isupdate = false;
+
+		});
+
+// 分享
+$('.share').on('click', function() {
+	var tr = $(this).parent().parent();
+
+	var divid = "";
+	if (isdelete != null && isdelete == 1) {
+		divid = 'divshare_' + tr.children('td').eq(2).html();
+	} else {
+		divid = 'divshare_' + tr.children('td').eq(2).html();
+	}
+	$('#' + divid + '').show();
+});
+//
+$('.realDelConfirm').click(function() {
+	$(this).parents('.alert-box').hide();
+});
+// 删除群
+$('.delConfirm').click(
+		function() {
+			if (isalldelete) {
+				var communityid = "";
+				$('#tbody1').find('i.cur').each(
+						function() {
+							communityid = $(this).parent().parent().children(
+									'td').get(2).innerHTML
+									+ "," + communityid;
+						});
+				communityid = communityid.substr(0, communityid.length - 1);
+				$.ajax({
+					type : "get",
+					url : '/delcommunity.do?communityid=' + communityid
+							+ '&isdelete=1',
+					success : function(data) {
+						if (data.result == "200") {
+							alert("删除成功");
+							$(this).parents('.alert-box').hide();
+						} else {
+							alert(data.message);
+						}
+						getPageGroupInfo(currentIndex, 0);
+					}
+				});
+
+				isalldelete = false;
+			} else {
+
+				$.ajax({
+					type : "get",
+					url : '/delcommunity.do?communityid=' + delcommunityid
+							+ '&isdelete=1',
+					success : function(data) {
+						if (data.result == "200") {
+							alert("删除成功");
+							$(this).parents('.alert-box').hide();
+						} else {
+							alert(data.message);
+						}
+						getPageGroupInfo(currentIndex, 0);
+					}
+				});
+			}
+
+		});
+// 单个恢复
+$('.ibtn.huifuQun')
+		.click(
+				function() {
+					huifucommunityid = $(this).parent().parent().children('td')
+							.get(2).innerHTML;
+					$('.huifuBox').show();
+				});
+// 批量恢复
+$('.btn.huifuQun').click(function() {
+	if ($('#tbody2').find('i').hasClass("cur")) {
+		isallrec = true;
+		$('.huifuBox').show();
+	}
+
+});
+$('.huifuConfirm').click(
+		function() {
+
+			if (isallrec) {
+				var communityid = "";
+				$('#tbody2').find('i.cur').each(
+						function() {
+							communityid = $(this).parent().parent().children(
+									'td').get(2).innerHTML
+									+ "," + communityid;
+						});
+				communityid = communityid.substr(0, communityid.length - 1);
+				// alert(communityid);
+				var obj = "communityid=" + communityid + "&isdelete=0";
+				var url = '/reccommunity.do?' + obj;
+				$.ajax({
+					type : "get",
+					url : url,
+					success : function(data) {
+						if (data.result == "200") {
+						} else {
+							alert(data.message);
+						}
+						getPageGroupInfo(currentIndex, 1);
+					}
+				});
+
+				isallrec = false;
+			} else {
+				// 恢复
+				var obj = "communityid=" + huifucommunityid + "&isdelete=0";
+				var url = '/reccommunity.do?' + obj;
+				$.ajax({
+					type : "get",
+					url : url,
+					success : function(data) {
+						if (data.result == "200") {
+							alert("恢复成功");
+							getPageGroupInfo(currentIndex, 1);
+						} else {
+							alert(data.message);
+						}
+					}
+				});
+				$(this).parents('.alert-box').hide();
+
+			}
+		});
+
+// body css
+$('body').css('min-height', $(window).height() + 'px');
+$(window).resize(function() {
+	$('body').css('min-height', $(window).height() + 'px');
+});
+
+// 页面头切换
+function cutBind() {
+	$('#grouplist').on('click', function() {
+		if (currentIndex != null && currentIndex != "") {
+			var url = contextPath+'/community.html?pageindex=' + currentIndex;
+		} else {
+			var url = contextPath+'/community.html';
+		}
+		window.location.href = url;
+	});
+	$('#delgrouplist').on('click', function() {
+		if (currentIndex != null && currentIndex != "") {
+			var url = contextPath+'/community.html?isdelete=1&pageindex=' + currentIndex;
+		} else {
+			var url = contextPath+'/community.html?isdelete=1';
+		}
+		// window.location.href = url;
+		window.location.href = url;
+	});
+}
+
+// 绑定条件查询点击事件
+function findBind() {
+	$('#find').on('click', function() {
+		debugger
+		var communityname = $('#selectgroup').val();
+		searchPage(1, communityname, 0);
+	});
+	$('#delfind').on('click', function() {
+		var communityname = $('#selectdelgroup').val();
+		searchPage(1, communityname, 1);
+	});
+}
+// 群搜索方法
+function searchPage(pageindex, communityname, isdelete) {
+	debugger
+	var url = contextPath+'/searchcommunity.do?communityname=' + communityname
+			+ '&pageindex=' + pageindex;
+	if (isdelete != null && isdelete != "") {
+		if (isdelete == 1) {
+			url = contextPath+'/searchcommunity.do?communityname=' + communityname
+					+ '&pageindex=' + pageindex + '&isdelete=1';
+		}
+	}
+	window.location.href = url;
+	// window.open(url);
+}
+
+// 分页
+function firstPageBind() {
+	$('#firstPage').on('click', function() {
+		if (currentIndex != 1) {
+			currentIndex = 1;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		}
+	});
+	$('#delfirstPage').on('click', function() {
+		if (currentIndex != 1) {
+			currentIndex = 1;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+
+		}
+	});
+}
+function lastPageBind() {
+	$('#lastPage').on('click', function() {
+		if (currentIndex != totalPage) {
+			currentIndex = totalPage;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+
+		}
+	});
+	$('#dellastPage').on('click', function() {
+		if (currentIndex != totalPage) {
+			currentIndex = totalPage;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+
+		}
+	});
+}
+function pageFrontBind() {
+	for (var i = 1; i <= totalPage; i++) {
+		$('#front_' + i).on('click', function() {
+			currentIndex = $(this).text();
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		});
+		$('#delfront_' + i).on('click', function() {
+			currentIndex = $(this).text();
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+
+		});
+	}
+}
+
+function priviousPageBind() {
+	$('#priviousPage').on('click', function() {
+		if (currentIndex > 1) {
+			currentIndex--;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		}
+	});
+	$('#delpriviousPage').on('click', function() {
+		if (currentIndex > 1) {
+			currentIndex--;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		}
+	});
+}
+
+function nextPageBind() {
+	$('#nextPage').on('click', function() {
+		if (currentIndex < totalPage) {
+			currentIndex++;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		}
+	});
+	$('#delnextPage').on('click', function() {
+		if (currentIndex < totalPage) {
+			currentIndex++;
+			if (searchtext != null && searchtext != "") {
+				searchPage(currentIndex, searchtext, isdelete);
+			} else {
+				getPageGroupInfo(currentIndex, isdelete);
+			}
+		}
+	});
+}
+
+function middlePageBind() {
+	$('#middlePage').on('click', function() {
+		currentIndex += 3;
+		if (searchtext != null && searchtext != "") {
+			searchPage(currentIndex, searchtext, isdelete);
+		} else {
+			getPageGroupInfo(currentIndex, isdelete);
+		}
+	});
+	$('#delmiddlePage').on('click', function() {
+		currentIndex += 3;
+		if (searchtext != null && searchtext != "") {
+			searchPage(currentIndex, searchtext, isdelete);
+		} else {
+			getPageGroupInfo(currentIndex, isdelete);
+		}
+	});
+}
+// 跳转刷新页面方式获取分页数据
+function getPageGroupInfo(pageindex, isdelete) {
+	debugger
+	var url = contextPath+'/community.html?pageindex=' + pageindex;
+
+	if (isdelete != null && isdelete == 1) {
+		url += '&isdelete=1';
+	}
+
+	window.location.href = url;
+}
+
+/**
+ * 群发消息跳转
+ * @returns
+ */
+$(document).on("click",".messageBtn",function(){
+	window.location.href=contextPath+"/groupmessage.html";
+})
+
+$('.changed-input').click(function(event) {
+	event.stopPropagation();
+});
+
+// body css样式
+$('body').css('min-height', $(window).height() + 'px');
+$(window).resize(function() {
+	$('body').css('min-height', $(window).height() + 'px');
+});

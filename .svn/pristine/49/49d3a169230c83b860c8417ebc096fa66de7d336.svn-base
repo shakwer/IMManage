@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2017-4-11 13:00:46 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+	<class name="com.fang.im.management.po.SysCommunityResource"
+		table="management_syscommunityresource">
+		<id name="communityId" type="java.lang.String">
+			<column name="communityid" length="20" />
+			<generator class="assigned" />
+		</id>
+		<property name="communityHolder" type="java.lang.String">
+			<column name="communityholder" not-null="true" length="50" />
+		</property>
+		<property name="communityName" type="java.lang.String">
+			<column name="communityname" not-null="true" length="100" />
+		</property>
+		<property name="city" type="java.lang.Integer">
+			<column name="city" not-null="true" />
+		</property>
+		<property name="category" type="java.lang.Integer">
+			<column name="category" not-null="true" />
+		</property>
+		<property name="createTime" type="java.util.Date">
+			<column name="createtime" not-null="true" />
+		</property>
+		<property name="isDelete" type="java.lang.Boolean">
+			<column name="isdelete" default="0" not-null="true" />
+		</property>
+		<property name="communityNotice" type="java.lang.String">
+			<column name="communitynotice" length="500" not-null="true" />
+		</property>
+		<property name="projectId" type="java.lang.String">
+			<column name="projectid" length="50" not-null="true" />
+		</property>
+		<property name="communityPic" type="java.lang.String">
+			<column name="communitypic" length="100" not-null="true" />
+		</property>
+		<property name="deleteTime" type="java.util.Date">
+			<column name="deletetime" not-null="true" />
+		</property>
+		<property name="communityLimit" type="java.lang.Integer">
+			<column name="communitylimit" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

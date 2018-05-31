@@ -1,0 +1,21 @@
+*{ margin:0; padding:0;}
+body{ font-size:12px; font-family:"Î¢ÈíÑÅºÚ";font-style:normal;}
+a{ text-decoration:none}
+em, i{font-style: normal;}
+ul, ol, li{list-style: none;}
+img{ border:none;vertical-align:middle;}
+input,select,textarea{outline:none;border:none;background:none;}
+textarea{resize:none;}
+.clearfix:after{
+  content: "."; 
+  display: block; 
+  height: 0; 
+  clear: both; 
+  visibility: hidden;  
+}
+
+.clearfix {
+  /* ´¥·¢ hasLayout */ 
+  zoom: 1; 
+}
+.disblock{ display: block;}

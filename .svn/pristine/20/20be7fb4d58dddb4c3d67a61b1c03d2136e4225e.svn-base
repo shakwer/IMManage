@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+ xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+ <!-- shiro redisManager -->
+ <bean id="redisManager" class="org.crazycake.shiro.RedisManager">
+  <property name="host" value="${redis.ip}" />
+  <property name="port" value="${redis.port}" />
+  <property name="expire" value="7200" /><!-- 单位 ：秒 ，保证了2小时后session失效 -->
+  <property name="password" value="${redis.password}" />
+ </bean>
+
+ <!-- 会话sessionid生成器 -->
+ <bean id="sessionIdGenerator" class="com.fang.im.management.shiro.MySessionIdGenerator" />
+
+ <!-- 会话DAO -->
+ <bean id="sessionDAO" class="org.crazycake.shiro.RedisSessionDAO">
+  <property name="sessionIdGenerator" ref="sessionIdGenerator" />
+  <property name="redisManager" ref="redisManager" />
+ </bean>
+
+ <!-- 会话Cookie模板 -->
+ <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+  <constructor-arg value="fang_imgroup_id_${profiles.active}" />
+  <property name="domain" value=".fang.com" />
+  <property name="path" value="/" />
+  <property name="httpOnly" value="false" />
+  <property name="maxAge" value="-1" /><!-- 默认为-1，即进程内cookie，保证了关闭浏览器，登录状态丢失 -->
+ </bean>
+
+ <!-- 会话管理器 -->
+ <bean id="sessionManager"
+  class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+  <property name="sessionIdUrlRewritingEnabled" value="false" />
+  <property name="globalSessionTimeout" value="1800000" /><!-- 单位：毫秒1800000 -->
+  <property name="deleteInvalidSessions" value="true" />
+  <property name="sessionDAO" ref="sessionDAO" />
+  <property name="sessionIdCookieEnabled" value="true" />
+  <property name="sessionIdCookie" ref="sessionIdCookie" />
+ </bean>
+
+ <!-- 自定义凭证匹配器 -->
+ <bean id="oACredentialsMatcher" class="com.fang.im.management.shiro.OACredentialsMatcher" />
+
+ <!-- 自定义角色权限匹配器 -->
+ <bean id="myRolePermissionResolver" class="com.fang.im.management.shiro.MyRolePermissionResolver" />
+ <!-- 自定义realm -->
+ <bean id="fangOaAuthenAndAuthorRealm" class="com.fang.im.management.shiro.FangOaAuthenAndAuthorRealm">
+  <property name="credentialsMatcher" ref="oACredentialsMatcher" />
+  <property name="rolePermissionResolver" ref="myRolePermissionResolver" />
+ </bean>
+
+ <!-- 缓存管理器 -->
+ <bean id="redisCacheManager" class="org.crazycake.shiro.RedisCacheManager">
+  <property name="redisManager" ref="redisManager" />
+ </bean>
+ <!-- shiro的安全管理器 -->
+ <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+  <property name="realm" ref="fangOaAuthenAndAuthorRealm" />
+  <property name="cacheManager" ref="redisCacheManager" />
+  <property name="sessionManager" ref="sessionManager" />
+ </bean>
+
+ <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+  <property name="loginUrl" value="/login.jsp" />
+  <!-- 下面的配置只在第一次访问shiro系统时才会生效（浏览器不能有缓存，系统内不能有访问记录），以后登陆该系统时，登陆成功后默认会跳转到登陆成功之前的那个页面 -->
+  <property name="successUrl" value="/index.jsp" />
+  <property name="unauthorizedUrl" value="/views/unauthorized.jsp" />
+  <property name="securityManager" ref="securityManager" />
+  <property name="filterChainDefinitions">
+   <value>
+    /autoLogin.jsp=anon
+    /login.do = anon
+    /login.jsp=anon
+    /resources/**=anon
+    /updateCommunityName.do=anon
+    /hasEmail.do=anon
+    /**=authc
+   </value>
+  </property>
+ </bean>
+
+ <!-- 相当于调用SecurityUtils.setSecurityManager(securityManager) -->
+ <bean
+  class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+  <property name="staticMethod"
+   value="org.apache.shiro.SecurityUtils.setSecurityManager" />
+  <property name="arguments" ref="securityManager" />
+ </bean>
+
+ <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+ <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+</beans>
